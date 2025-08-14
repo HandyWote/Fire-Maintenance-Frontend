@@ -17,19 +17,19 @@
 ## 开发阶段划分
 
 ### 第一阶段 (1-2周): 项目搭建
-- [ ] 环境配置与依赖安装
-  - [ ] 安装 Node.js 和 npm
-  - [ ] 初始化 Vue 3 + TypeScript 项目
-  - [ ] 安装 Element Plus 及相关依赖
-  - [ ] 配置 Vite 构建工具
-  - [ ] 设置 ESLint 和 Prettier
+- [x] 环境配置与依赖安装
+  - [x] 安装 Node.js 和 npm
+  - [x] 初始化 Vue 3 + TypeScript 项目
+  - [x] 安装 Element Plus 及相关依赖
+  - [x] 配置 Vite 构建工具
+  - [x] 设置 ESLint 和 Prettier
 
-- [ ] 项目结构搭建
-  - [ ] 创建基础目录结构
+- [x] 项目结构搭建
+  - [x] 创建基础目录结构
   - [ ] 配置路由系统
   - [ ] 设置状态管理 (Pinia)
-  - [ ] 配置 HTTP 客户端 (Axios)
-  - [ ] 设置全局样式和主题
+  - [x] 配置 HTTP 客户端 (Axios)
+  - [x] 设置全局样式和主题
 
 - [ ] 基础组件开发
   - [ ] 布局组件 (Header, Sidebar, Footer)
