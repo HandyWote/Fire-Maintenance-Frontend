@@ -52,6 +52,7 @@ const props = withDefaults(defineProps<BaseTableProps>(), {
   fit: true,
   showSummary: false,
   sumText: '合计',
+  rowKey: 'id',
   defaultExpandAll: false,
   expandRowKeys: () => [],
   highlightCurrentRow: false,

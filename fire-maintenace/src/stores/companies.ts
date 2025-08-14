@@ -1,38 +1,6 @@
 import { defineStore, acceptHMRUpdate } from 'pinia'
 import { ref, computed } from 'vue'
-
-export interface Company {
-  id: string
-  name: string
-  code: string
-  address: string
-  contactPerson: string
-  contactPhone: string
-  contactEmail: string
-  businessLicense: string
-  taxNumber: string
-  bankAccount: string
-  bankName: string
-  status: 'active' | 'inactive' | 'pending'
-  description?: string
-  createdAt: string
-  updatedAt: string
-}
-
-export interface CompanyFormData {
-  name: string
-  code: string
-  address: string
-  contactPerson: string
-  contactPhone: string
-  contactEmail: string
-  businessLicense: string
-  taxNumber: string
-  bankAccount: string
-  bankName: string
-  status: 'active' | 'inactive' | 'pending'
-  description?: string
-}
+import type { Company, CompanyFormData } from '@/types/company'
 
 export interface CompanyFilter {
   keyword?: string
@@ -73,7 +41,7 @@ export const useCompaniesStore = defineStore('companies', () => {
     // 关键词过滤
     if (filter.value.keyword) {
       const keyword = filter.value.keyword.toLowerCase()
-      result = result.filter(company => 
+      result = result.filter((company: Company) => 
         company.name.toLowerCase().includes(keyword) ||
         company.code.toLowerCase().includes(keyword) ||
         company.contactPerson.toLowerCase().includes(keyword)
@@ -82,7 +50,7 @@ export const useCompaniesStore = defineStore('companies', () => {
 
     // 状态过滤
     if (filter.value.status) {
-      result = result.filter(company => company.status === filter.value.status)
+      result = result.filter((company: Company) => company.status === filter.value.status)
     }
 
     return result
@@ -99,15 +67,15 @@ export const useCompaniesStore = defineStore('companies', () => {
   })
 
   const activeCompanies = computed(() => {
-    return companies.value.filter(company => company.status === 'active')
+    return companies.value.filter((company: Company) => company.status === 'active')
   })
 
   const inactiveCompanies = computed(() => {
-    return companies.value.filter(company => company.status === 'inactive')
+    return companies.value.filter((company: Company) => company.status === 'inactive')
   })
 
   const pendingCompanies = computed(() => {
-    return companies.value.filter(company => company.status === 'pending')
+    return companies.value.filter((company: Company) => company.status === 'pending')
   })
 
   // 动作
@@ -122,7 +90,7 @@ export const useCompaniesStore = defineStore('companies', () => {
   }
 
   function updateCompany(updatedCompany: Company) {
-    const index = companies.value.findIndex(c => c.id === updatedCompany.id)
+    const index = companies.value.findIndex((c: Company) => c.id === updatedCompany.id)
     if (index !== -1) {
       companies.value[index] = updatedCompany
       if (currentCompany.value?.id === updatedCompany.id) {
@@ -132,7 +100,7 @@ export const useCompaniesStore = defineStore('companies', () => {
   }
 
   function deleteCompany(companyId: string) {
-    const index = companies.value.findIndex(c => c.id === companyId)
+    const index = companies.value.findIndex((c: Company) => c.id === companyId)
     if (index !== -1) {
       companies.value.splice(index, 1)
       pagination.value.total = companies.value.length
@@ -233,7 +201,7 @@ export const useCompaniesStore = defineStore('companies', () => {
       '创建时间'
     ]
 
-    const rows = companies.value.map(company => [
+    const rows = companies.value.map((company: Company) => [
       company.name,
       company.code,
       company.address,
@@ -249,7 +217,7 @@ export const useCompaniesStore = defineStore('companies', () => {
     ])
 
     const csvContent = [headers, ...rows]
-      .map(row => row.map(cell => `"${cell}"`).join(','))
+      .map((row: string[]) => row.map((cell: string) => `"${cell}"`).join(','))
       .join('\n')
 
     return '\ufeff' + csvContent // 添加BOM以支持中文

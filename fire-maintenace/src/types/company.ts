@@ -2,37 +2,38 @@ export interface Company {
   id: string
   name: string
   code: string
-  type: 'customer' | 'contractor' | 'supplier'
-  status: 'active' | 'inactive' | 'pending'
+  address: string
   contactPerson: string
   contactPhone: string
   contactEmail: string
-  address: string
-  registrationNumber?: string
-  taxNumber?: string
-  businessScope?: string
+  businessLicense: string
+  taxNumber: string
+  bankAccount: string
+  bankName: string
+  status: 'active' | 'inactive' | 'pending'
   description?: string
-  createdAt: Date
-  updatedAt: Date
-  createdBy: string
-  updatedBy: string
+  createdAt: string
+  updatedAt: string
 }
 
-export interface CompanyCreateRequest {
+export interface CompanyFormData {
   name: string
   code: string
-  type: 'customer' | 'contractor' | 'supplier'
+  address: string
   contactPerson: string
   contactPhone: string
   contactEmail: string
-  address: string
-  registrationNumber?: string
-  taxNumber?: string
-  businessScope?: string
+  businessLicense: string
+  taxNumber: string
+  bankAccount: string
+  bankName: string
+  status: 'active' | 'inactive' | 'pending'
   description?: string
 }
 
-export interface CompanyUpdateRequest extends Partial<CompanyCreateRequest> {
+export interface CompanyCreateRequest extends CompanyFormData {}
+
+export interface CompanyUpdateRequest extends Partial<CompanyFormData> {
   id: string
 }
 

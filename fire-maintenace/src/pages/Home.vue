@@ -1,20 +1,36 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import HomeLayout from '@/components/layout/HomeLayout.vue'
 import { useNavigationStore } from '@/stores/navigation'
 import type { NavigationItem } from '@/types/navigation'
 
-// 使用导航Store
+// 使用路由和导航Store
+const router = useRouter()
 const navigationStore = useNavigationStore()
 
 // 计算属性
 const navigationData = computed(() => navigationStore.filteredNavigation)
-const currentNode = computed(() => navigationStore.currentNode)
+const currentNode = computed(() => navigationStore.currentNavigation?.id || '')
 
 // 处理导航树点击
 const handleNodeClick = (data: NavigationItem) => {
-  navigationStore.setCurrentNode(data.id)
-  console.log('点击节点:', data)
+  // 验证路径是否存在
+  if (!data.path) {
+    console.warn('导航项缺少路径:', data)
+    return
+  }
+
+  // 设置当前导航状态
+  navigationStore.setCurrentNavigation(data)
+  
+  // 执行路由跳转
+  try {
+    router.push(data.path)
+    console.log('跳转到:', data.path)
+  } catch (error) {
+    console.error('路由跳转失败:', error)
+  }
 }
 
 // 组件挂载时初始化导航

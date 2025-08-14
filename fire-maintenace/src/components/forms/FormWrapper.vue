@@ -1,21 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, h } from 'vue'
 import { ElForm, ElFormItem, ElButton, ElRow, ElCol } from 'element-plus'
-
-interface FormField {
-  prop: string
-  label: string
-  type: 'text' | 'number' | 'email' | 'password' | 'textarea' | 'select' | 'date' | 'switch' | 'checkbox' | 'radio'
-  placeholder?: string
-  required?: boolean
-  disabled?: boolean
-  readonly?: boolean
-  rules?: any[]
-  options?: Array<{ label: string; value: any }>
-  span?: number
-  defaultValue?: any
-  description?: string
-}
+import type { FormField } from '@/config/formConfig'
+import { debounce } from '@/utils/common'
 
 interface FormProps {
   model: Record<string, any>
@@ -63,7 +50,7 @@ const localModel = ref<Record<string, any>>({})
 // 初始化本地模型
 const initializeModel = () => {
   localModel.value = {}
-  props.fields.forEach(field => {
+  props.fields.forEach((field: FormField) => {
     if (field.defaultValue !== undefined) {
       localModel.value[field.prop] = field.defaultValue
     } else if (props.model[field.prop] !== undefined) {
@@ -75,7 +62,7 @@ const initializeModel = () => {
 }
 
 // 监听外部模型变化
-watch(() => props.model, (newModel) => {
+watch(() => props.model, (newModel: Record<string, any>) => {
   Object.keys(newModel).forEach(key => {
     if (localModel.value[key] !== newModel[key]) {
       localModel.value[key] = newModel[key]
@@ -90,9 +77,9 @@ watch(() => props.fields, initializeModel, { immediate: true })
 const getFormRules = () => {
   const rules: Record<string, any[]> = {}
   
-  props.fields.forEach(field => {
-    if (field.rules && field.rules.length > 0) {
-      rules[field.prop] = field.rules
+  props.fields.forEach((field: FormField) => {
+    if (field.validation?.rules && field.validation.rules.length > 0) {
+      rules[field.prop] = field.validation.rules
     } else if (field.required) {
       rules[field.prop] = [
         { required: true, message: `${field.label}不能为空`, trigger: 'blur' }
@@ -182,11 +169,11 @@ const renderField = (field: FormField) => {
   }
 }
 
-// 处理字段变化
-const handleFieldChange = (field: string, value: any) => {
+// 处理字段变化（使用防抖优化性能）
+const handleFieldChange = debounce((field: string, value: any) => {
   localModel.value[field] = value
   emit('fieldChange', field, value)
-}
+}, 300)
 
 // 提交表单
 const submitForm = async () => {
@@ -228,9 +215,6 @@ const getLayoutClass = () => {
 const getFieldSpan = (field: FormField) => {
   return field.span || (props.layout === 'inline' ? 6 : 24)
 }
-
-// 手动导入h函数
-import { h } from 'vue'
 </script>
 
 <template>
@@ -255,7 +239,7 @@ import { h } from 'vue'
             :label="field.label"
             :prop="field.prop"
             :required="field.required"
-            :rules="field.rules"
+            :rules="field.validation?.rules"
           >
             <component :is="() => renderField(field)" />
             

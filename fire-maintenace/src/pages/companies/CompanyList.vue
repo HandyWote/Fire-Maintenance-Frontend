@@ -3,8 +3,11 @@ import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import DataTable from '@/components/common/DataTable.vue'
 import Card from '@/components/common/Card.vue'
+import CompanyForm from '@/components/forms/CompanyForm.vue'
 import { companyService } from '@/services/company'
 import type { TableColumn, TableAction, TablePagination } from '@/types/table'
+import type { Company } from '@/types/company'
+import { useCompaniesStore } from '@/stores/companies'
 
 // 表格列定义
 const columns = ref<TableColumn[]>([
@@ -19,44 +22,51 @@ const columns = ref<TableColumn[]>([
     width: '180'
   },
   {
-    prop: 'type',
-    label: '企业类型',
-    width: '120'
-  },
-  {
-    prop: 'industry',
-    label: '所属行业',
-    width: '140'
-  },
-  {
     prop: 'address',
     label: '企业地址',
     width: '200'
   },
   {
-    prop: 'contact',
+    prop: 'contactPerson',
     label: '联系人',
     width: '100'
   },
   {
-    prop: 'phone',
+    prop: 'contactPhone',
     label: '联系电话',
     width: '140'
   },
   {
+    prop: 'contactEmail',
+    label: '邮箱',
+    width: '180'
+  },
+  {
+    prop: 'businessLicense',
+    label: '营业执照号',
+    width: '160'
+  },
+  {
     prop: 'status',
     label: '状态',
-    width: '100'
+    width: '100',
+    formatter: (row: Company) => {
+      const status = statusMap[row.status as keyof typeof statusMap]
+      return status ? status.label : row.status
+    }
   },
   {
     prop: 'createdAt',
     label: '创建时间',
-    width: '160'
+    width: '160',
+    formatter: (row: Company) => {
+      return new Date(row.createdAt).toLocaleString()
+    }
   }
 ])
 
 // 表格数据
-const tableData = ref<any[]>([])
+const tableData = ref<Company[]>([])
 const loading = ref(false)
 const error = ref<Error | string | null>(null)
 
@@ -71,13 +81,26 @@ const pagination = ref<TablePagination>({
   background: true
 })
 
+// 公司表单相关
+const showCompanyForm = ref(false)
+const formMode = ref<'create' | 'edit'>('create')
+const currentCompany = ref<Company | null>(null)
+const companiesStore = useCompaniesStore()
+
+// 状态映射
+const statusMap = {
+  active: { label: '正常', type: 'success' },
+  inactive: { label: '停用', type: 'danger' },
+  pending: { label: '待审核', type: 'warning' }
+}
+
 // 操作按钮
 const actions = ref<TableAction[]>([
   {
     label: '编辑',
     type: 'primary',
     size: 'small',
-    onClick: (row: any, index: number) => {
+    onClick: (row: Company, index: number) => {
       handleEdit(row, index)
     }
   },
@@ -85,7 +108,7 @@ const actions = ref<TableAction[]>([
     label: '删除',
     type: 'danger',
     size: 'small',
-    onClick: (row: any, index: number) => {
+    onClick: (row: Company, index: number) => {
       handleDelete(row, index)
     }
   },
@@ -93,8 +116,8 @@ const actions = ref<TableAction[]>([
     label: '启用',
     type: 'success',
     size: 'small',
-    visible: (row: any) => row.status === '暂停',
-    onClick: (row: any, index: number) => {
+    visible: (row: Company) => row.status === 'inactive',
+    onClick: (row: Company, index: number) => {
       handleEnable(row, index)
     }
   },
@@ -102,8 +125,8 @@ const actions = ref<TableAction[]>([
     label: '禁用',
     type: 'warning',
     size: 'small',
-    visible: (row: any) => row.status === '正常',
-    onClick: (row: any, index: number) => {
+    visible: (row: Company) => row.status === 'active',
+    onClick: (row: Company, index: number) => {
       handleDisable(row, index)
     }
   }
@@ -131,11 +154,30 @@ const loadData = async () => {
   }
 }
 
+// 创建企业
+const handleCreate = () => {
+  formMode.value = 'create'
+  currentCompany.value = null
+  showCompanyForm.value = true
+}
+
 // 编辑企业
-const handleEdit = (row: any, _index: number) => {
-  console.log('编辑企业:', row)
-  // TODO: 实现编辑功能
-  ElMessage.info('编辑功能待实现')
+const handleEdit = (row: Company, _index: number) => {
+  formMode.value = 'edit'
+  currentCompany.value = row
+  showCompanyForm.value = true
+}
+
+// 处理表单提交
+const handleFormSubmit = (company: Company) => {
+  ElMessage.success(`${formMode.value === 'create' ? '创建' : '编辑'}企业成功`)
+  loadData() // 重新加载数据
+  showCompanyForm.value = false
+}
+
+// 处理表单取消
+const handleFormCancel = () => {
+  showCompanyForm.value = false
 }
 
 // 删除企业
@@ -208,6 +250,14 @@ onMounted(() => {
 <template>
   <div class="company-list">
     <Card title="企业管理">
+      <!-- 操作按钮区域 -->
+      <div class="table-actions">
+        <el-button type="primary" @click="handleCreate">
+          <el-icon><Plus /></el-icon>
+          新建企业
+        </el-button>
+      </div>
+      
       <DataTable
         :data="tableData"
         :columns="columns"
@@ -219,11 +269,63 @@ onMounted(() => {
         @page-size-change="handlePageSizeChange"
       />
     </Card>
+    
+    <!-- 公司表单对话框 -->
+    <CompanyForm
+      v-model:visible="showCompanyForm"
+      :company="currentCompany"
+      :mode="formMode"
+      @submit="handleFormSubmit"
+      @cancel="handleFormCancel"
+    />
   </div>
 </template>
 
 <style scoped>
 .company-list {
   padding: 20px;
+}
+
+.table-actions {
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.table-actions .el-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .company-list {
+    padding: 12px;
+  }
+  
+  .table-actions {
+    margin-bottom: 12px;
+  }
+  
+  .table-actions .el-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* 深色模式支持 */
+@media (prefers-color-scheme: dark) {
+  .table-actions .el-button {
+    border-color: #4a4a4a;
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+  }
+  
+  .table-actions .el-button:hover {
+    border-color: #5a5a5a;
+    background-color: #3a3a3a;
+  }
 }
 </style>
