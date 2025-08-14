@@ -94,6 +94,23 @@ export const navigationConfig: NavigationItem[] = [
   }
 ]
 
+// 组件映射配置，避免硬编码
+const componentMap: Record<string, () => Promise<any>> = {
+  'personnel': () => import('@/pages/personnel/PersonnelList.vue'),
+  'companies': () => import('@/pages/companies/CompanyList.vue'),
+  'contracts': () => import('@/pages/contracts/ContractList.vue'),
+  'maintenance-contract': () => import('@/pages/contracts/MaintenanceContractList.vue'),
+  'inspection-contract': () => import('@/pages/contracts/InspectionContractList.vue'),
+  'evaluation-contract': () => import('@/pages/contracts/EvaluationContractList.vue'),
+  'plan-management': () => import('@/pages/plan-management/PlanManagementList.vue'),
+  'maintenance-plan': () => import('@/pages/plan-management/MaintenancePlanList.vue'),
+  'inspection-plan': () => import('@/pages/plan-management/InspectionPlanList.vue'),
+  'evaluation-plan': () => import('@/pages/plan-management/EvaluationPlanList.vue'),
+  'execution-monitor': () => import('@/pages/execution-monitor/ExecutionMonitorList.vue'),
+  'task-status': () => import('@/pages/execution-monitor/TaskStatusList.vue'),
+  'execution-stats': () => import('@/pages/execution-monitor/ExecutionStatsList.vue')
+}
+
 // 根据导航配置生成路由
 export const generateRoutes = (navItems: NavigationItem[]): RouteRecordRaw[] => {
   const routes: RouteRecordRaw[] = []
@@ -104,41 +121,12 @@ export const generateRoutes = (navItems: NavigationItem[]): RouteRecordRaw[] => 
         const route: RouteRecordRaw = {
           path: item.path,
           name: item.id,
-          component: () => import('@/pages/NotFound.vue'), // 默认组件
+          component: componentMap[item.id] || (() => import('@/pages/NotFound.vue')),
           meta: {
             title: item.label,
             permission: item.permission,
             requiresAuth: true
           }
-        }
-        
-        // 动态导入组件
-        if (item.id === 'personnel') {
-          route.component = () => import('@/pages/personnel/PersonnelList.vue')
-        } else if (item.id === 'companies') {
-          route.component = () => import('@/pages/companies/CompanyList.vue')
-        } else if (item.id === 'contracts') {
-          route.component = () => import('@/pages/contracts/ContractList.vue')
-        } else if (item.id === 'maintenance-contract') {
-          route.component = () => import('@/pages/contracts/MaintenanceContractList.vue')
-        } else if (item.id === 'inspection-contract') {
-          route.component = () => import('@/pages/contracts/InspectionContractList.vue')
-        } else if (item.id === 'evaluation-contract') {
-          route.component = () => import('@/pages/contracts/EvaluationContractList.vue')
-        } else if (item.id === 'plan-management') {
-          route.component = () => import('@/pages/plan-management/PlanManagementList.vue')
-        } else if (item.id === 'maintenance-plan') {
-          route.component = () => import('@/pages/plan-management/MaintenancePlanList.vue')
-        } else if (item.id === 'inspection-plan') {
-          route.component = () => import('@/pages/plan-management/InspectionPlanList.vue')
-        } else if (item.id === 'evaluation-plan') {
-          route.component = () => import('@/pages/plan-management/EvaluationPlanList.vue')
-        } else if (item.id === 'execution-monitor') {
-          route.component = () => import('@/pages/execution-monitor/ExecutionMonitorList.vue')
-        } else if (item.id === 'task-status') {
-          route.component = () => import('@/pages/execution-monitor/TaskStatusList.vue')
-        } else if (item.id === 'execution-stats') {
-          route.component = () => import('@/pages/execution-monitor/ExecutionStatsList.vue')
         }
         
         routes.push(route)

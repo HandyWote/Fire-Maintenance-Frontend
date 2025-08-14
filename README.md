@@ -291,6 +291,13 @@ VITE_APP_ENV=production
 - [x] 通用工具函数 (common.ts)
 - [x] 表单验证组合函数 (useFormValidation.ts)
 - [x] 工作流组合函数 (useWorkflow.ts)
+- [x] 性能优化工具 (performance.ts) - 包含批量处理、虚拟滚动、懒加载等功能
+
+#### TypeScript 类型优化
+- [x] 修复 performance.ts 中的 TypeScript 类型错误
+- [x] 将 unref() 替换为 toValue() 以获得更好的类型推断
+- [x] 优化 useBatchProcess 函数的类型安全性
+- [x] 移除不必要的类型断言，提高代码质量
 
 #### 类型定义
 - [x] 工作流类型定义 (workflow.ts)
@@ -590,4 +597,4 @@ npm install
 
 **最后更新**: 2025-08-14  
 **创建者**: HandyWote
-**状态**: 初期开发中
+**状态**: 开发进行中 - TypeScript 类型优化完成

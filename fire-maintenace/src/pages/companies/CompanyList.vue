@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import DataTable from '@/components/common/DataTable.vue'
 import Card from '@/components/common/Card.vue'
+import { companyService } from '@/services/company'
+import type { TableColumn, TableAction, TablePagination } from '@/types/table'
 
 // 表格列定义
-const columns = ref([
+const columns = ref<TableColumn[]>([
   {
     prop: 'id',
     label: '企业编号',
@@ -58,7 +61,7 @@ const loading = ref(false)
 const error = ref<Error | string | null>(null)
 
 // 分页配置
-const pagination = ref({
+const pagination = ref<TablePagination>({
   page: 1,
   pageSize: 10,
   total: 0,
@@ -69,24 +72,42 @@ const pagination = ref({
 })
 
 // 操作按钮
-const actions = [
+const actions = ref<TableAction[]>([
   {
     label: '编辑',
-    type: 'primary' as const,
-    size: 'small' as const,
+    type: 'primary',
+    size: 'small',
     onClick: (row: any, index: number) => {
-      console.log('编辑企业:', row, index)
+      handleEdit(row, index)
     }
   },
   {
     label: '删除',
-    type: 'danger' as const,
-    size: 'small' as const,
+    type: 'danger',
+    size: 'small',
     onClick: (row: any, index: number) => {
-      console.log('删除企业:', row, index)
+      handleDelete(row, index)
+    }
+  },
+  {
+    label: '启用',
+    type: 'success',
+    size: 'small',
+    visible: (row: any) => row.status === '暂停',
+    onClick: (row: any, index: number) => {
+      handleEnable(row, index)
+    }
+  },
+  {
+    label: '禁用',
+    type: 'warning',
+    size: 'small',
+    visible: (row: any) => row.status === '正常',
+    onClick: (row: any, index: number) => {
+      handleDisable(row, index)
     }
   }
-]
+])
 
 // 加载数据
 const loadData = async () => {
@@ -94,53 +115,74 @@ const loadData = async () => {
   error.value = null
   
   try {
-    // 模拟API调用
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    const result = await companyService.getAllCompanies({
+      page: pagination.value.page,
+      pageSize: pagination.value.pageSize
+    })
     
-    // 模拟数据
-    const mockData = [
-      {
-        id: 'COM001',
-        name: '北京科技有限公司',
-        type: '有限责任公司',
-        industry: '信息技术',
-        address: '北京市朝阳区科技园区',
-        contact: '张经理',
-        phone: '010-12345678',
-        status: '正常',
-        createdAt: '2024-01-01 10:00:00'
-      },
-      {
-        id: 'COM002',
-        name: '上海商贸有限公司',
-        type: '股份有限公司',
-        industry: '贸易',
-        address: '上海市浦东新区商务区',
-        contact: '李总',
-        phone: '021-87654321',
-        status: '正常',
-        createdAt: '2024-01-02 10:00:00'
-      },
-      {
-        id: 'COM003',
-        name: '广州制造有限公司',
-        type: '有限责任公司',
-        industry: '制造业',
-        address: '广州市天河区工业区',
-        contact: '王厂长',
-        phone: '020-11223344',
-        status: '暂停',
-        createdAt: '2024-01-03 10:00:00'
-      }
-    ]
-    
-    tableData.value = mockData
-    pagination.value.total = mockData.length
+    tableData.value = result.data
+    pagination.value.total = result.total
   } catch (err) {
     error.value = err as Error | string
     console.error('加载企业数据失败:', err)
+    ElMessage.error('加载企业数据失败')
   } finally {
     loading.value = false
+  }
+}
+
+// 编辑企业
+const handleEdit = (row: any, _index: number) => {
+  console.log('编辑企业:', row)
+  // TODO: 实现编辑功能
+  ElMessage.info('编辑功能待实现')
+}
+
+// 删除企业
+const handleDelete = async (row: any, _index: number) => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除企业 "${row.name}" 吗？此操作不可撤销。`,
+      '确认删除',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+    
+    await companyService.deleteCompany(row.id)
+    ElMessage.success('删除成功')
+    loadData() // 重新加载数据
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除企业失败:', error)
+      ElMessage.error('删除企业失败')
+    }
+  }
+}
+
+// 启用企业
+const handleEnable = async (row: any, _index: number) => {
+  try {
+    await companyService.enableCompany(row.id)
+    ElMessage.success('启用成功')
+    loadData() // 重新加载数据
+  } catch (error) {
+    console.error('启用企业失败:', error)
+    ElMessage.error('启用企业失败')
+  }
+}
+
+// 禁用企业
+const handleDisable = async (row: any, _index: number) => {
+  try {
+    await companyService.disableCompany(row.id)
+    ElMessage.success('禁用成功')
+    loadData() // 重新加载数据
+  } catch (error) {
+    console.error('禁用企业失败:', error)
+    ElMessage.error('禁用企业失败')
   }
 }
 

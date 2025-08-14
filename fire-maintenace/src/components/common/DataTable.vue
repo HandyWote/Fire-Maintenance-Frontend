@@ -2,73 +2,13 @@
 import { ref } from 'vue'
 import BaseTable from './BaseTable.vue'
 import TableActions from './TableActions.vue'
-import TablePagination from './TablePagination.vue'
+import TablePaginationComponent from './TablePagination.vue'
 import Loading from './Loading.vue'
 import Error from './Error.vue'
 import Empty from './Empty.vue'
+import type { TableColumn, TablePagination, TableProps, TableEmits } from '@/types/table'
 
-// 重新定义类型，避免导入问题
-interface TableColumn {
-  prop: string
-  label: string
-  width?: string | number
-  minWidth?: string | number
-  fixed?: 'left' | 'right'
-  sortable?: boolean
-  sortMethod?: (a: any, b: any) => number
-  formatter?: (row: any, column: any, cellValue: any, index: number) => string | any
-  showOverflowTooltip?: boolean
-  align?: 'left' | 'center' | 'right'
-  headerAlign?: 'left' | 'center' | 'right'
-  className?: string
-  labelClassName?: string
-  type?: 'selection' | 'index' | 'expand'
-  selectable?: (row: any, index: number) => boolean
-  reserveSelection?: boolean
-  filters?: Array<{ text: string; value: any }>
-  filterMethod?: (value: any, row: any) => boolean
-  filterMultiple?: boolean
-  filterPlacement?: string
-}
-
-interface TableAction {
-  label: string
-  type?: 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'text'
-  icon?: string
-  size?: 'small' | 'default' | 'large'
-  disabled?: boolean | ((row: any, index: number) => boolean)
-  visible?: boolean | ((row: any, index: number) => boolean)
-  onClick: (row: any, index: number) => void
-  tooltip?: string
-  confirm?: boolean
-  confirmText?: string
-  confirmTitle?: string
-}
-
-interface SimplePaginationConfig {
-  page: number
-  pageSize: number
-  total: number
-  pageSizes?: number[]
-  layout?: string
-  small?: boolean
-  background?: boolean
-}
-
-interface SimpleTableProps {
-  data: any[]
-  columns: TableColumn[]
-  loading?: boolean
-  error?: Error | string | null
-  emptyText?: string
-  actions?: TableAction[]
-  showPagination?: boolean
-  pagination?: SimplePaginationConfig
-  height?: string | number
-  maxHeight?: string | number
-}
-
-withDefaults(defineProps<SimpleTableProps>(), {
+withDefaults(defineProps<TableProps>(), {
   loading: false,
   error: null,
   emptyText: '暂无数据',
@@ -85,31 +25,13 @@ withDefaults(defineProps<SimpleTableProps>(), {
   })
 })
 
-const emit = defineEmits<{
-  'update:pagination': [pagination: SimplePaginationConfig]
-  'selection-change': [selection: any[]]
-  'select': [selection: any, row: any]
-  'select-all': [selection: any[]]
-  'sort-change': [sort: any]
-  'filter-change': [filters: any]
-  'current-change': [currentRow: any]
-  'row-click': [row: any, column: TableColumn, event: Event]
-  'row-dblclick': [row: any, column: TableColumn, event: Event]
-  'row-contextmenu': [row: any, column: TableColumn, event: Event]
-  'cell-click': [row: any, column: TableColumn, cell: any, event: Event]
-  'cell-dblclick': [row: any, column: TableColumn, cell: any, event: Event]
-  'header-click': [column: TableColumn, event: Event]
-  'header-contextmenu': [column: TableColumn, event: Event]
-  'expand-change': [row: any, expanded: boolean]
-  'page-change': [page: number]
-  'page-size-change': [pageSize: number]
-}>()
+const emit = defineEmits<TableEmits>()
 
 // 基础表格引用
 const baseTableRef = ref<InstanceType<typeof BaseTable>>()
 
 // 处理分页变化
-const handlePaginationChange = (pagination: SimplePaginationConfig) => {
+const handlePaginationChange = (pagination: TablePagination) => {
   emit('update:pagination', pagination)
 }
 
@@ -239,7 +161,7 @@ defineExpose({
       </BaseTable>
       
       <!-- 分页 -->
-      <TablePagination
+      <TablePaginationComponent
         :pagination="pagination"
         :show-pagination="showPagination"
         @update:pagination="handlePaginationChange"

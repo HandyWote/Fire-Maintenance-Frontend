@@ -10,6 +10,9 @@ export * from './project'
 // 报告相关类型
 export * from './report'
 
+// 表格相关类型
+export * from './table'
+
 // 通用类型定义
 export interface ApiResponse<T = any> {
   code: number

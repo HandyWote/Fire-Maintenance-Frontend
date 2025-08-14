@@ -1,31 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { ElTable, ElTableColumn } from 'element-plus'
-import type { VNode, CSSProperties } from 'vue'
-import type { TableColumnCtx } from 'element-plus'
-
-interface TableColumn {
-  prop: string
-  label: string
-  width?: string | number
-  minWidth?: string | number
-  fixed?: 'left' | 'right'
-  sortable?: boolean
-  sortMethod?: (a: any, b: any) => number
-  formatter?: (row: any, column: TableColumnCtx<any>, cellValue: any, index: number) => string | VNode
-  showOverflowTooltip?: boolean
-  align?: 'left' | 'center' | 'right'
-  headerAlign?: 'left' | 'center' | 'right'
-  className?: string
-  labelClassName?: string
-  type?: 'selection' | 'index' | 'expand'
-  selectable?: (row: any, index: number) => boolean
-  reserveSelection?: boolean
-  filters?: Array<{ text: string; value: any }>
-  filterMethod?: (value: any, row: any) => boolean
-  filterMultiple?: boolean
-  filterPlacement?: string
-}
+import type { CSSProperties } from 'vue'
+import type { TableColumn } from '@/types/table'
 
 interface BaseTableProps {
   data: any[]
