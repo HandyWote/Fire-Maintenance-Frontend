@@ -1,0 +1,135 @@
+/* 首页布局样式 */
+.home-container {
+  padding: 20px;
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+.main-content {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -10px;
+  min-height: calc(100vh - 120px);
+}
+
+/* 内容区域样式 */
+.content-card {
+  height: calc(100vh - 160px);
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+}
+
+.content-header {
+  padding: 24px 32px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #ffffff;
+  border-radius: 12px 12px 0 0;
+}
+
+.content-header h2 {
+  margin: 0 0 8px 0;
+  color: #1e293b;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.content-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.content-body {
+  flex: 1;
+  padding: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border-radius: 0 0 12px 12px;
+}
+
+.welcome-section {
+  text-align: center;
+  max-width: 400px;
+}
+
+.welcome-section h3 {
+  margin: 0 0 12px 0;
+  color: #1e293b;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.welcome-section p {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .main-content {
+    flex-direction: column;
+  }
+  
+  .navigation-card {
+    height: auto;
+    margin-bottom: 20px;
+    min-height: 80px;
+    width: 100%;
+    max-width: none;
+  }
+  
+  .content-card {
+    height: auto;
+    min-height: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .home-container {
+    padding: 12px;
+  }
+  
+  .navigation-card {
+    margin-bottom: 16px;
+  }
+  
+  .content-header {
+    padding: 20px 24px;
+  }
+  
+  .content-header h2 {
+    font-size: 20px;
+  }
+  
+  .content-body {
+    padding: 24px;
+  }
+  
+  .welcome-section h3 {
+    font-size: 18px;
+  }
+}
+
+/* 内容卡片动画效果 */
+.content-card {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
