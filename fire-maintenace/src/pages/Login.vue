@@ -3,8 +3,10 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElForm, ElFormItem, ElInput, ElButton, ElCard, ElMessage } from 'element-plus'
 import { User, Lock } from '@element-plus/icons-vue'
+import { usePermissionsStore } from '@/stores/permissions'
 
 const router = useRouter()
+const permissionsStore = usePermissionsStore()
 const loginForm = ref({
   username: '',
   password: ''
@@ -34,10 +36,28 @@ const handleLogin = async () => {
     setTimeout(() => {
       // 模拟登录成功
       localStorage.setItem('token', 'mock-token')
+      
+      // 根据用户名确定角色和权限
+      let userRole = 'user'
+      let userPermissions = [
+        'personnel:view',
+        'companies:view'
+      ]
+      
+      // 管理员账号拥有所有权限
+      if (loginForm.value.username === 'admin') {
+        userRole = 'admin'
+        userPermissions = ['*'] // 所有权限
+      }
+      
+      // 保存用户信息
       localStorage.setItem('user', JSON.stringify({
         username: loginForm.value.username,
-        role: 'admin'
+        role: userRole
       }))
+      
+      // 设置权限状态
+      permissionsStore.login(userPermissions)
       
       ElMessage.success('登录成功')
       router.push('/')

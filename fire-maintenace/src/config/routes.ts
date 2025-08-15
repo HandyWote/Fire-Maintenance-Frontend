@@ -1,115 +1,12 @@
 import type { NavigationItem } from '@/types/navigation'
 import type { RouteRecordRaw } from 'vue-router'
+import { navigationConfig as unifiedNavigationConfig, componentMap as unifiedComponentMap } from '@/config/navigationConfig'
 
-// 导航配置（与navigation.ts保持一致）
-export const navigationConfig: NavigationItem[] = [
-  {
-    id: 'personnel',
-    label: '员工管理',
-    icon: 'User',
-    path: '/personnel',
-    permission: 'personnel:view'
-  },
-  {
-    id: 'companies',
-    label: '企业管理',
-    icon: 'OfficeBuilding',
-    path: '/companies',
-    permission: 'companies:view'
-  },
-  {
-    id: 'contracts',
-    label: '合同管理',
-    icon: 'Files',
-    path: '/contracts',
-    permission: 'contracts:view',
-    children: [
-      { 
-        id: 'maintenance-contract', 
-        label: '维保合同',
-        path: '/contracts/maintenance',
-        permission: 'contracts:maintenance:view'
-      },
-      { 
-        id: 'inspection-contract', 
-        label: '检测合同',
-        path: '/contracts/inspection',
-        permission: 'contracts:inspection:view'
-      },
-      { 
-        id: 'evaluation-contract', 
-        label: '评估合同',
-        path: '/contracts/evaluation',
-        permission: 'contracts:evaluation:view'
-      }
-    ]
-  },
-  {
-    id: 'plan-management',
-    label: '计划管理',
-    icon: 'Calendar',
-    path: '/plans',
-    permission: 'plans:view',
-    children: [
-      { 
-        id: 'maintenance-plan', 
-        label: '维保计划管理',
-        path: '/plans/maintenance',
-        permission: 'plans:maintenance:view'
-      },
-      { 
-        id: 'inspection-plan', 
-        label: '检测计划管理',
-        path: '/plans/inspection',
-        permission: 'plans:inspection:view'
-      },
-      { 
-        id: 'evaluation-plan', 
-        label: '评估计划管理',
-        path: '/plans/evaluation',
-        permission: 'plans:evaluation:view'
-      }
-    ]
-  },
-  {
-    id: 'execution-monitor',
-    label: '执行监控',
-    icon: 'Monitor',
-    path: '/monitor',
-    permission: 'monitor:view',
-    children: [
-      { 
-        id: 'task-status', 
-        label: '任务状态',
-        path: '/monitor/tasks',
-        permission: 'monitor:tasks:view'
-      },
-      { 
-        id: 'execution-stats', 
-        label: '执行统计',
-        path: '/monitor/stats',
-        permission: 'monitor:stats:view'
-      }
-    ]
-  }
-]
+// 导航配置（从统一的导航配置导入，避免重复）
+export const navigationConfig: NavigationItem[] = unifiedNavigationConfig
 
-// 组件映射配置，避免硬编码
-const componentMap: Record<string, () => Promise<any>> = {
-  'personnel': () => import('@/pages/personnel/PersonnelList.vue'),
-  'companies': () => import('@/pages/companies/CompanyList.vue'),
-  'contracts': () => import('@/pages/contracts/ContractList.vue'),
-  'maintenance-contract': () => import('@/pages/contracts/MaintenanceContractList.vue'),
-  'inspection-contract': () => import('@/pages/contracts/InspectionContractList.vue'),
-  'evaluation-contract': () => import('@/pages/contracts/EvaluationContractList.vue'),
-  'plan-management': () => import('@/pages/plan-management/PlanManagementList.vue'),
-  'maintenance-plan': () => import('@/pages/plan-management/MaintenancePlanList.vue'),
-  'inspection-plan': () => import('@/pages/plan-management/InspectionPlanList.vue'),
-  'evaluation-plan': () => import('@/pages/plan-management/EvaluationPlanList.vue'),
-  'execution-monitor': () => import('@/pages/execution-monitor/ExecutionMonitorList.vue'),
-  'task-status': () => import('@/pages/execution-monitor/TaskStatusList.vue'),
-  'execution-stats': () => import('@/pages/execution-monitor/ExecutionStatsList.vue')
-}
+// 组件映射配置（从统一的导航配置导入，避免硬编码）
+const componentMap: Record<string, () => Promise<any>> = unifiedComponentMap
 
 // 根据导航配置生成路由
 export const generateRoutes = (navItems: NavigationItem[]): RouteRecordRaw[] => {

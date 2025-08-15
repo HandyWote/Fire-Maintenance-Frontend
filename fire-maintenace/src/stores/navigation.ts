@@ -36,10 +36,73 @@ export const useNavigationStore = defineStore('navigation', () => {
   // 获取权限 store
   const permissionsStore = usePermissionsStore()
   
+  // LRU缓存实现
+  class LRUCache<K, V> {
+    private cache: Map<K, V>
+    private maxSize: number
+    
+    constructor(maxSize: number = 5) {
+      this.cache = new Map()
+      this.maxSize = maxSize
+    }
+    
+    get(key: K): V | undefined {
+      const value = this.cache.get(key)
+      if (value !== undefined) {
+        // 移动到最前面（最近使用）
+        this.cache.delete(key)
+        this.cache.set(key, value)
+      }
+      return value
+    }
+    
+    set(key: K, value: V): void {
+      if (this.cache.has(key)) {
+        // 更新现有值
+        this.cache.delete(key)
+      } else if (this.cache.size >= this.maxSize) {
+        // 删除最老的项
+        const firstKey = this.cache.keys().next().value
+        if (firstKey !== undefined) {
+          this.cache.delete(firstKey)
+        }
+      }
+      this.cache.set(key, value)
+    }
+    
+    clear(): void {
+      this.cache.clear()
+    }
+    
+    has(key: K): boolean {
+      return this.cache.has(key)
+    }
+  }
+  
+  // 缓存计算结果
+  const navigationCache = new LRUCache<string, { filtered: NavigationItem[]; flattened: NavigationItem[] }>()
+  const cacheKey = ref('')
+
+  // 生成缓存键
+  const generateCacheKey = () => {
+    const permissions = permissionsStore.userPermissions.join(',')
+    const navVersion = navigationItems.value.length.toString()
+    return `${permissions}_${navVersion}`
+  }
+
   // 计算属性：过滤后的导航项（基于权限）
   const filteredNavigation = computed(() => {
+    const currentKey = generateCacheKey()
+    
+    // 如果缓存有效，直接返回
+    const cached = navigationCache.get(currentKey)
+    if (cached) {
+      return cached.filtered
+    }
+    
+    // 重新计算
     const filterItems = (items: NavigationItem[]): NavigationItem[] => {
-      return items.filter(item => {
+      return items.map(item => ({...item})).filter(item => {
         // 检查当前项权限
         if (!permissionsStore.checkPermission(item.permission || '')) {
           return false
@@ -60,11 +123,29 @@ export const useNavigationStore = defineStore('navigation', () => {
       })
     }
     
-    return filterItems(navigationItems.value)
+    const result = filterItems(navigationItems.value)
+    
+    // 更新缓存
+    navigationCache.set(currentKey, {
+      filtered: result,
+      flattened: [] // 将在flattenedNavigation中计算
+    })
+    cacheKey.value = currentKey
+    
+    return result
   })
   
   // 计算属性：扁平化的导航项（用于面包屑等）
   const flattenedNavigation = computed(() => {
+    const currentKey = generateCacheKey()
+    
+    // 如果缓存有效，直接返回
+    const cached = navigationCache.get(currentKey)
+    if (cached && cached.flattened.length > 0) {
+      return cached.flattened
+    }
+    
+    // 重新计算
     const flatten = (items: NavigationItem[], parentPath = ''): NavigationItem[] => {
       const result: NavigationItem[] = []
       
@@ -81,7 +162,19 @@ export const useNavigationStore = defineStore('navigation', () => {
       return result
     }
     
-    return flatten(filteredNavigation.value)
+    const result = flatten(filteredNavigation.value)
+    
+    // 更新缓存
+    if (cached) {
+      cached.flattened = result
+    } else {
+      navigationCache.set(currentKey, {
+        filtered: filteredNavigation.value,
+        flattened: result
+      })
+    }
+    
+    return result
   })
   
   // 计算属性：当前路径的导航项

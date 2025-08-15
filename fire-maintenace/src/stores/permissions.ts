@@ -5,13 +5,15 @@ export interface PermissionsState {
   userPermissions: string[]
   loading: boolean
   error: string | null
+  isAuthenticated: boolean
 }
 
 export const usePermissionsStore = defineStore('permissions', () => {
   // 状态定义
-  const userPermissions = ref<string[]>(['*']) // 默认所有权限，实际应该从用户信息中获取
+  const userPermissions = ref<string[]>([]) // 默认无权限，需要从用户信息中获取
   const loading = ref<boolean>(false)
   const error = ref<string | null>(null)
+  const isAuthenticated = ref<boolean>(false)
 
   // 计算属性
   const hasAllPermissions = computed(() => userPermissions.value.includes('*'))
@@ -56,9 +58,32 @@ export const usePermissionsStore = defineStore('permissions', () => {
   }
 
   function resetPermissions() {
-    userPermissions.value = ['*']
+    userPermissions.value = []
     loading.value = false
     error.value = null
+    isAuthenticated.value = false
+  }
+
+  // 认证相关方法
+  function setAuthenticated(authenticated: boolean) {
+    isAuthenticated.value = authenticated
+  }
+
+  function login(permissions: string[]) {
+    userPermissions.value = permissions
+    isAuthenticated.value = true
+    error.value = null
+  }
+
+  function logout() {
+    userPermissions.value = []
+    isAuthenticated.value = false
+    error.value = null
+  }
+
+  // 检查是否已认证
+  function checkAuthentication(): boolean {
+    return isAuthenticated.value
   }
 
   // 检查权限
@@ -84,6 +109,7 @@ export const usePermissionsStore = defineStore('permissions', () => {
     userPermissions,
     loading,
     error,
+    isAuthenticated,
 
     // 计算属性
     hasAllPermissions,
@@ -102,6 +128,13 @@ export const usePermissionsStore = defineStore('permissions', () => {
     checkPermission,
     checkAnyPermission,
     checkAllPermissions,
+    
+    // 认证相关
+    setAuthenticated,
+    login,
+    logout,
+    checkAuthentication,
+    
     $reset
   }
 })
