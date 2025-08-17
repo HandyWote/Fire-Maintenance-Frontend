@@ -22,6 +22,9 @@ export * from './object'
 // 随机数和颜色处理相关工具函数
 export * from './random'
 
+// Cookie相关工具函数
+export * from './cookie'
+
 // 性能监控相关工具函数
 export * from './performance'
 

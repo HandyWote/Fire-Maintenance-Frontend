@@ -4,7 +4,7 @@
  */
 
 import { post } from '@/utils/request'
-import { AuthCookieUtil, CookieUtil } from '@/utils/cookie'
+import { AuthCookieUtil } from '@/utils/cookie'
 
 export interface LoginRequest {
   username: string
