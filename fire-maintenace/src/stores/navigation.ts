@@ -85,9 +85,10 @@ export const useNavigationStore = defineStore('navigation', () => {
 
   // 生成缓存键
   const generateCacheKey = () => {
-    const permissions = permissionsStore.userPermissions.join(',')
+    const permissions = permissionsStore.userPermissions?.join(',') || ''
+    const userRole = permissionsStore.userRole || 'guest'
     const navVersion = navigationItems.value.length.toString()
-    return `${permissions}_${navVersion}`
+    return `${userRole}_${permissions}_${navVersion}`
   }
 
   // 计算属性：过滤后的导航项（基于权限）

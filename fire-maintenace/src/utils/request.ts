@@ -13,8 +13,22 @@ const request: AxiosInstance = axios.create({
 // 请求拦截器
 request.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // 从localStorage获取token
-    const token = localStorage.getItem('token')
+    // 优先从Cookie获取token，其次从localStorage获取
+    let token = null
+    
+    // 尝试从Cookie获取（如果CookieUtil可用）
+    try {
+      const { AuthCookieUtil } = require('@/utils/cookie')
+      token = AuthCookieUtil.getToken()
+    } catch (error) {
+      // CookieUtil不可用，继续使用localStorage
+      console.warn('CookieUtil不可用，使用localStorage获取token')
+    }
+    
+    // 如果Cookie中没有token，尝试从localStorage获取
+    if (!token) {
+      token = localStorage.getItem('token')
+    }
     
     if (token) {
       config.headers = config.headers || {}

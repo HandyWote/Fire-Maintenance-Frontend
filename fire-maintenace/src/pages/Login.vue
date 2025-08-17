@@ -1,15 +1,19 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElForm, ElFormItem, ElInput, ElButton, ElCard, ElMessage } from 'element-plus'
+import { ElForm, ElFormItem, ElInput, ElButton, ElCard, ElMessage, ElCheckbox } from 'element-plus'
 import { User, Lock } from '@element-plus/icons-vue'
 import { usePermissionsStore } from '@/stores/permissions'
+import { authService, useAuth } from '@/services/auth'
 
 const router = useRouter()
 const permissionsStore = usePermissionsStore()
+const { login, getTestAccounts, isDevelopment } = useAuth()
+
 const loginForm = ref({
   username: '',
-  password: ''
+  password: '',
+  remember: false
 })
 const loading = ref(false)
 
@@ -25,6 +29,9 @@ const loginRules = {
 
 const loginFormRef = ref()
 
+// 获取测试账号信息
+const testAccounts = computed(() => getTestAccounts())
+
 const handleLogin = async () => {
   if (!loginFormRef.value) return
   
@@ -32,40 +39,34 @@ const handleLogin = async () => {
     await loginFormRef.value.validate()
     loading.value = true
     
-    // 模拟登录请求
-    setTimeout(() => {
-      // 模拟登录成功
-      localStorage.setItem('token', 'mock-token')
-      
-      // 根据用户名确定角色和权限
-      let userRole = 'user'
-      let userPermissions = [
-        'personnel:view',
-        'companies:view'
-      ]
-      
-      // 管理员账号拥有所有权限
-      if (loginForm.value.username === 'admin') {
-        userRole = 'admin'
-        userPermissions = ['*'] // 所有权限
-      }
-      
-      // 保存用户信息
-      localStorage.setItem('user', JSON.stringify({
+    try {
+      // 使用认证服务进行登录
+      const authUser = await login({
         username: loginForm.value.username,
-        role: userRole
-      }))
+        password: loginForm.value.password,
+        remember: loginForm.value.remember
+      })
       
-      // 设置权限状态
-      permissionsStore.login(userPermissions)
+      // 同步权限存储
+      permissionsStore.setUser(authUser)
       
       ElMessage.success('登录成功')
       router.push('/')
-      loading.value = false
-    }, 1000)
+    } catch (error) {
+      console.error('登录失败:', error)
+      ElMessage.error(error instanceof Error ? error.message : '登录失败，请检查用户名和密码')
+    }
   } catch (error) {
+    console.error('表单验证失败:', error)
+  } finally {
     loading.value = false
   }
+}
+
+// 快速填充测试账号
+const fillTestAccount = (username, password) => {
+  loginForm.value.username = username
+  loginForm.value.password = password
 }
 </script>
 

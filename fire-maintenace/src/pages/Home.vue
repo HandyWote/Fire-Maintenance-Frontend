@@ -89,32 +89,21 @@ const checkUserAuthentication = () => {
     return
   }
   
-  // 检查localStorage中是否有token
-  const token = localStorage.getItem('token')
+  // 检查localStorage中是否有用户信息
   const userStr = localStorage.getItem('user')
   
-  if (!token || !userStr) {
-    // 没有token或用户信息，跳转到登录页面
+  if (!userStr) {
+    // 没有用户信息，跳转到登录页面
     router.push('/login')
     return
   }
   
-  // 有token但未认证，可能是页面刷新导致的，重新设置认证状态
+  // 有用户信息但未认证，可能是页面刷新导致的，重新设置认证状态
   try {
     const user = JSON.parse(userStr)
     
-    // 根据用户角色重新设置权限
-    let userPermissions = [
-      'personnel:view',
-      'companies:view'
-    ]
-    
-    if (user.role === 'admin') {
-      userPermissions = ['*'] // 管理员拥有所有权限
-    }
-    
-    // 重新设置权限状态
-    permissionsStore.login(userPermissions)
+    // 重新设置用户状态
+    permissionsStore.setUser(user)
     
   } catch (error) {
     console.error('解析用户信息失败:', error)
