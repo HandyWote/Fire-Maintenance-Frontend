@@ -4,7 +4,6 @@ export interface NavigationItem {
   icon?: string
   path?: string
   children?: NavigationItem[]
-  permission?: string
   visible?: boolean
 }
 

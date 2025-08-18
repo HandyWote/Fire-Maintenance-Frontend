@@ -23,58 +23,32 @@ app.use(pinia)
 app.use(router)
 app.use(ElementPlus)
 
-// 异步初始化认证和权限系统
+// 简化的认证系统初始化
 const initializeAuthSystem = async () => {
   try {
-    console.log('开始初始化认证和权限系统...')
+    console.log('初始化认证系统...')
     
-    // 初始化权限存储
-    const { usePermissionsStore } = await import('./stores/permissions')
-    const permissionsStore = usePermissionsStore()
+    // 初始化简化的认证存储
+    const { useAuthStore } = await import('./stores/permissions')
+    const authStore = useAuthStore()
     
-    // 设置写死的admin账号用于测试
-    const adminUser = {
-      id: 'admin-user',
-      username: 'admin',
-      role: 'admin'
-    }
+    // 从本地存储加载认证状态
+    authStore.initializeAuth()
     
-    permissionsStore.setUser(adminUser)
-    
-    console.log('认证和权限系统初始化完成')
-    console.log('当前用户:', permissionsStore.user)
-    console.log('认证状态:', permissionsStore.isAuthenticated)
-    console.log('用户角色:', permissionsStore.userRole)
-    console.log('是否管理员:', permissionsStore.isAdmin)
-    console.log('用户权限:', permissionsStore.userPermissions)
+    console.log('认证系统初始化完成')
+    console.log('当前用户:', authStore.user)
+    console.log('认证状态:', authStore.isAuthenticated)
     
   } catch (error) {
-    console.error('认证和权限系统初始化失败:', error)
-    
-    // 强制设置回退用户
-    try {
-      const { usePermissionsStore } = await import('./stores/permissions')
-      const permissionsStore = usePermissionsStore()
-      const fallbackUser = {
-        id: 'fallback-user',
-        username: 'user',
-        role: 'user'
-      }
-      permissionsStore.setUser(fallbackUser)
-      console.log('回退用户设置完成:', fallbackUser)
-    } catch (fallbackError) {
-      console.error('回退用户设置失败:', fallbackError)
-    }
+    console.error('认证系统初始化失败:', error)
   }
 }
 
-// 在应用挂载前初始化认证系统
+// 初始化认证系统后挂载应用
 initializeAuthSystem().then(() => {
-  console.log('认证系统初始化完成，准备挂载应用...')
-  // 认证系统初始化完成后挂载应用
+  console.log('准备挂载应用...')
   app.mount('#app')
 }).catch((error) => {
   console.error('认证系统初始化失败，但仍然挂载应用:', error)
-  // 即使认证系统初始化失败，也要挂载应用
   app.mount('#app')
 })

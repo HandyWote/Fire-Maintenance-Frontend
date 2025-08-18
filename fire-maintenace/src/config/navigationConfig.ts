@@ -9,40 +9,34 @@ export const navigationConfig: NavigationItem[] = [
     id: 'personnel',
     label: '员工管理',
     icon: 'User',
-    path: '/personnel',
-    permission: 'personnel:view'
+    path: '/personnel'
   },
   {
     id: 'companies',
     label: '企业管理',
     icon: 'OfficeBuilding',
-    path: '/companies',
-    permission: 'companies:view'
+    path: '/companies'
   },
   {
     id: 'contracts',
     label: '合同管理',
     icon: 'Files',
     path: '/contracts',
-    permission: 'contracts:view',
     children: [
       { 
         id: 'maintenance-contract', 
         label: '维保合同',
-        path: '/contracts/maintenance',
-        permission: 'contracts:maintenance:view'
+        path: '/contracts/maintenance'
       },
       { 
         id: 'inspection-contract', 
         label: '检测合同',
-        path: '/contracts/inspection',
-        permission: 'contracts:inspection:view'
+        path: '/contracts/inspection'
       },
       { 
         id: 'evaluation-contract', 
         label: '评估合同',
-        path: '/contracts/evaluation',
-        permission: 'contracts:evaluation:view'
+        path: '/contracts/evaluation'
       }
     ]
   },
@@ -51,25 +45,21 @@ export const navigationConfig: NavigationItem[] = [
     label: '计划管理',
     icon: 'Calendar',
     path: '/plans',
-    permission: 'plans:view',
     children: [
       { 
         id: 'maintenance-plan', 
         label: '维保计划管理',
-        path: '/plans/maintenance',
-        permission: 'plans:maintenance:view'
+        path: '/plans/maintenance'
       },
       { 
         id: 'inspection-plan', 
         label: '检测计划管理',
-        path: '/plans/inspection',
-        permission: 'plans:inspection:view'
+        path: '/plans/inspection'
       },
       { 
         id: 'evaluation-plan', 
         label: '评估计划管理',
-        path: '/plans/evaluation',
-        permission: 'plans:evaluation:view'
+        path: '/plans/evaluation'
       }
     ]
   },
@@ -78,19 +68,16 @@ export const navigationConfig: NavigationItem[] = [
     label: '执行监控',
     icon: 'Monitor',
     path: '/monitor',
-    permission: 'monitor:view',
     children: [
       { 
         id: 'task-status', 
         label: '任务状态',
-        path: '/monitor/tasks',
-        permission: 'monitor:tasks:view'
+        path: '/monitor/tasks'
       },
       { 
         id: 'execution-stats', 
         label: '执行统计',
-        path: '/monitor/stats',
-        permission: 'monitor:stats:view'
+        path: '/monitor/stats'
       }
     ]
   }
@@ -142,33 +129,12 @@ export const findNavigationItem = (id: string, items: NavigationItem[] = navigat
 }
 
 /**
- * 根据权限过滤导航项
+ * 简化版导航过滤 - 不再基于权限过滤，返回所有导航项
  * @param items 导航项数组
- * @param permissions 权限数组
- * @returns 过滤后的导航项
+ * @returns 所有导航项
  */
-export const filterNavigationByPermissions = (items: NavigationItem[], permissions: string[]): NavigationItem[] => {
+export const filterNavigationByPermissions = (items: NavigationItem[]): NavigationItem[] => {
   return items
-    .filter(item => {
-      // 检查当前项权限
-      if (item.permission && !permissions.includes(item.permission)) {
-        return false
-      }
-      
-      // 递归检查子项
-      if (item.children) {
-        const filteredChildren = filterNavigationByPermissions(item.children, permissions)
-        // 如果有子项通过权限检查，则保留当前项
-        if (filteredChildren.length > 0) {
-          item.children = filteredChildren
-          return true
-        }
-        // 如果没有子项通过权限检查，则过滤掉当前项
-        return false
-      }
-      
-      return true
-    })
 }
 
 /**

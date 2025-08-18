@@ -3,11 +3,11 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElForm, ElFormItem, ElInput, ElButton, ElCard, ElMessage, ElCheckbox } from 'element-plus'
 import { User, Lock } from '@element-plus/icons-vue'
-import { usePermissionsStore } from '@/stores/permissions'
+import { useAuthStore } from '@/stores/permissions'
 import { authService, useAuth } from '@/services/auth'
 
 const router = useRouter()
-const permissionsStore = usePermissionsStore()
+const authStore = useAuthStore()
 const { login, getTestAccounts, isDevelopment } = useAuth()
 
 const loginForm = ref({
@@ -47,8 +47,8 @@ const handleLogin = async () => {
         remember: loginForm.value.remember
       })
       
-      // 同步权限存储
-      permissionsStore.setUser(authUser)
+      // 同步认证存储
+      authStore.setUser(authUser)
       
       ElMessage.success('登录成功')
       router.push('/')

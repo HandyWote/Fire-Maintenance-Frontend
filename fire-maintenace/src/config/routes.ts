@@ -21,7 +21,6 @@ export const generateRoutes = (navItems: NavigationItem[]): RouteRecordRaw[] => 
           component: componentMap[item.id] || (() => import('@/pages/NotFound.vue')),
           meta: {
             title: item.label,
-            permission: item.permission,
             requiresAuth: true
           }
         }
@@ -124,20 +123,7 @@ export const getAllRoutePaths = (routes: RouteRecordRaw[] = appRoutes): string[]
   return paths
 }
 
-// 根据权限过滤路由
-export const filterRoutesByPermissions = (routes: RouteRecordRaw[], permissions: string[]): RouteRecordRaw[] => {
-  return routes.filter(route => {
-    const meta = route.meta as any
-    if (meta?.permission && !permissions.includes(meta.permission)) {
-      return false
-    }
-    
-    if (route.children) {
-      route.children = filterRoutesByPermissions(route.children, permissions)
-      // 如果有子路由通过权限检查，则保留当前路由
-      return route.children.length > 0
-    }
-    
-    return true
-  })
+// 简化版路由过滤 - 不再基于权限过滤，返回所有路由
+export const filterRoutesByPermissions = (routes: RouteRecordRaw[]): RouteRecordRaw[] => {
+  return routes
 }

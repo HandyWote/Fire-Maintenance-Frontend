@@ -7,7 +7,7 @@ const router = createRouter({
   routes: appRoutes
 })
 
-// 路由守卫
+// 简化的路由守卫 - 只检查登录状态
 router.beforeEach((to, _from, next) => {
   // 设置页面标题
   if (to.meta.title) {
@@ -16,23 +16,8 @@ router.beforeEach((to, _from, next) => {
   
   // 检查是否需要认证
   if (to.meta.requiresAuth) {
-    // 使用认证服务检查认证状态
     if (!authService.isAuthenticated()) {
       next('/login')
-      return
-    }
-    
-    // 检查角色权限（如果路由有角色要求）
-    if (to.meta.role && !authService.hasRole(to.meta.role as string)) {
-      // 如果没有权限，重定向到403页面或首页
-      next('/')
-      return
-    }
-    
-    // 检查资源访问权限（如果路由有权限要求）
-    if (to.meta.permission && !authService.canAccess(to.meta.permission as string)) {
-      // 如果没有权限，重定向到403页面或首页
-      next('/')
       return
     }
   }

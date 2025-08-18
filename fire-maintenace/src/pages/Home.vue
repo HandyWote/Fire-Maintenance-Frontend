@@ -3,13 +3,13 @@ import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import HomeLayout from '@/components/layout/HomeLayout.vue'
 import { useNavigationStore } from '@/stores/navigation'
-import { usePermissionsStore } from '@/stores/permissions'
+import { useAuthStore } from '@/stores/permissions'
 import type { NavigationItem } from '@/types/navigation'
 
 // 使用路由和导航Store
 const router = useRouter()
 const navigationStore = useNavigationStore()
-const permissionsStore = usePermissionsStore()
+const authStore = useAuthStore()
 
 // 计算属性
 const navigationData = computed(() => navigationStore.filteredNavigation)
@@ -24,17 +24,14 @@ const handleNodeClick = async (data: NavigationItem) => {
   }
 
   // 验证用户是否已认证
-  if (!permissionsStore.isAuthenticated) {
+  if (!authStore.isAuthenticated) {
     console.warn('用户未认证，无法进行导航')
     // 可以在这里添加跳转到登录页的逻辑
     return
   }
 
-  // 验证权限
-  if (!permissionsStore.checkPermission(data.permission || '')) {
-    console.warn('用户没有权限访问:', data.label)
-    return
-  }
+  // 简化权限验证 - 已登录即可访问所有页面
+  console.log('用户已认证，允许访问:', data.label)
 
   // 设置当前导航状态
   navigationStore.setCurrentNavigation(data)
@@ -85,7 +82,7 @@ onMounted(() => {
 // 检查用户认证状态
 const checkUserAuthentication = () => {
   // 如果用户已认证，直接返回
-  if (permissionsStore.isAuthenticated) {
+  if (authStore.isAuthenticated) {
     return
   }
   
@@ -103,7 +100,7 @@ const checkUserAuthentication = () => {
     const user = JSON.parse(userStr)
     
     // 重新设置用户状态
-    permissionsStore.setUser(user)
+    authStore.setUser(user)
     
   } catch (error) {
     console.error('解析用户信息失败:', error)

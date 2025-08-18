@@ -2,7 +2,7 @@ import { defineStore, acceptHMRUpdate } from 'pinia'
 import { ref, computed } from 'vue'
 import { navigationConfig } from '@/config/navigation'
 import type { NavigationItem } from '@/types/navigation'
-import { usePermissionsStore } from './permissions'
+import { useAuthStore } from './permissions'
 
 export interface NavigationState {
   // 导航配置
@@ -33,120 +33,19 @@ export const useNavigationStore = defineStore('navigation', () => {
   const loading = ref<boolean>(false)
   const error = ref<string | null>(null)
 
-  // 获取权限 store
-  const permissionsStore = usePermissionsStore()
+  // 获取认证 store
+  const authStore = useAuthStore()
   
-  // LRU缓存实现
-  class LRUCache<K, V> {
-    private cache: Map<K, V>
-    private maxSize: number
-    
-    constructor(maxSize: number = 5) {
-      this.cache = new Map()
-      this.maxSize = maxSize
-    }
-    
-    get(key: K): V | undefined {
-      const value = this.cache.get(key)
-      if (value !== undefined) {
-        // 移动到最前面（最近使用）
-        this.cache.delete(key)
-        this.cache.set(key, value)
-      }
-      return value
-    }
-    
-    set(key: K, value: V): void {
-      if (this.cache.has(key)) {
-        // 更新现有值
-        this.cache.delete(key)
-      } else if (this.cache.size >= this.maxSize) {
-        // 删除最老的项
-        const firstKey = this.cache.keys().next().value
-        if (firstKey !== undefined) {
-          this.cache.delete(firstKey)
-        }
-      }
-      this.cache.set(key, value)
-    }
-    
-    clear(): void {
-      this.cache.clear()
-    }
-    
-    has(key: K): boolean {
-      return this.cache.has(key)
-    }
-  }
-  
-  // 缓存计算结果
-  const navigationCache = new LRUCache<string, { filtered: NavigationItem[]; flattened: NavigationItem[] }>()
-  const cacheKey = ref('')
-
-  // 生成缓存键
-  const generateCacheKey = () => {
-    const permissions = permissionsStore.userPermissions?.join(',') || ''
-    const userRole = permissionsStore.userRole || 'guest'
-    const navVersion = navigationItems.value.length.toString()
-    return `${userRole}_${permissions}_${navVersion}`
-  }
-
-  // 计算属性：过滤后的导航项（基于权限）
+  // 简化版：过滤后的导航项（已登录即可访问所有导航）
   const filteredNavigation = computed(() => {
-    const currentKey = generateCacheKey()
-    
-    // 如果缓存有效，直接返回
-    const cached = navigationCache.get(currentKey)
-    if (cached) {
-      return cached.filtered
+    if (!authStore.isAuthenticated) {
+      return []
     }
-    
-    // 重新计算
-    const filterItems = (items: NavigationItem[]): NavigationItem[] => {
-      return items.map(item => ({...item})).filter(item => {
-        // 检查当前项权限
-        if (!permissionsStore.checkPermission(item.permission || '')) {
-          return false
-        }
-        
-        // 如果有子项，递归过滤
-        if (item.children && item.children.length > 0) {
-          const filteredChildren = filterItems(item.children)
-          // 如果有子项通过权限检查，则保留当前项
-          if (filteredChildren.length > 0) {
-            item.children = filteredChildren
-            return true
-          }
-          return false
-        }
-        
-        return true
-      })
-    }
-    
-    const result = filterItems(navigationItems.value)
-    
-    // 更新缓存
-    navigationCache.set(currentKey, {
-      filtered: result,
-      flattened: [] // 将在flattenedNavigation中计算
-    })
-    cacheKey.value = currentKey
-    
-    return result
+    return navigationItems.value
   })
   
   // 计算属性：扁平化的导航项（用于面包屑等）
   const flattenedNavigation = computed(() => {
-    const currentKey = generateCacheKey()
-    
-    // 如果缓存有效，直接返回
-    const cached = navigationCache.get(currentKey)
-    if (cached && cached.flattened.length > 0) {
-      return cached.flattened
-    }
-    
-    // 重新计算
     const flatten = (items: NavigationItem[], parentPath = ''): NavigationItem[] => {
       const result: NavigationItem[] = []
       
@@ -163,19 +62,7 @@ export const useNavigationStore = defineStore('navigation', () => {
       return result
     }
     
-    const result = flatten(filteredNavigation.value)
-    
-    // 更新缓存
-    if (cached) {
-      cached.flattened = result
-    } else {
-      navigationCache.set(currentKey, {
-        filtered: filteredNavigation.value,
-        flattened: result
-      })
-    }
-    
-    return result
+    return flatten(filteredNavigation.value)
   })
   
   // 计算属性：当前路径的导航项
@@ -319,28 +206,6 @@ export const useNavigationStore = defineStore('navigation', () => {
     return findItem(filteredNavigation.value)
   }
   
-  // 动作：查找导航项的父项
-  const findParentNavigationItem = (id: string): NavigationItem | null => {
-    const findParent = (items: NavigationItem[], targetId: string): NavigationItem | null => {
-      for (const item of items) {
-        if (item.children) {
-          for (const child of item.children) {
-            if (child.id === targetId) {
-              return item
-            }
-          }
-          const found = findParent(item.children, targetId)
-          if (found) {
-            return found
-          }
-        }
-      }
-      return null
-    }
-    
-    return findParent(filteredNavigation.value, id)
-  }
-  
   // 动作：根据路径查找导航项
   const findNavigationItemByPath = (path: string): NavigationItem | null => {
     return flattenedNavigation.value.find(item => item.path === path) || null
@@ -385,61 +250,14 @@ export const useNavigationStore = defineStore('navigation', () => {
     return breadcrumbs.value
   }
   
-  // 动作：判断导航项是否可见
+  // 简化版：导航项可见性检查（已登录即可见）
   const isNavigationItemVisible = (item: NavigationItem): boolean => {
-    return permissionsStore.checkPermission(item.permission || '')
+    return authStore.isAuthenticated
   }
   
-  // 动作：判断导航项是否可用
+  // 简化版：导航项可用性检查（已登录且不在加载中即可用）
   const isNavigationItemEnabled = (item: NavigationItem): boolean => {
-    return permissionsStore.checkPermission(item.permission || '') && !loading.value
-  }
-  
-  // 动作：添加导航项
-  const addNavigationItem = (item: NavigationItem, parentId?: string) => {
-    if (parentId) {
-      const parent = findNavigationItem(parentId)
-      if (parent) {
-        if (!parent.children) {
-          parent.children = []
-        }
-        parent.children.push(item)
-      } else {
-        console.warn(`Parent navigation item with id '${parentId}' not found`)
-      }
-    } else {
-      navigationItems.value.push(item)
-    }
-  }
-  
-  // 动作：更新导航项
-  const updateNavigationItem = (itemId: string, updates: Partial<NavigationItem>) => {
-    const item = findNavigationItem(itemId)
-    if (item) {
-      Object.assign(item, updates)
-    } else {
-      console.warn(`Navigation item with id '${itemId}' not found`)
-    }
-  }
-  
-  // 动作：删除导航项
-  const removeNavigationItem = (itemId: string) => {
-    const removeFromArray = (items: NavigationItem[]): boolean => {
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].id === itemId) {
-          items.splice(i, 1)
-          return true
-        }
-        if (items[i].children) {
-          if (removeFromArray(items[i].children!)) {
-            return true
-          }
-        }
-      }
-      return false
-    }
-    
-    removeFromArray(navigationItems.value)
+    return authStore.isAuthenticated && !loading.value
   }
   
   // 动作：导航到指定路径
@@ -485,7 +303,6 @@ export const useNavigationStore = defineStore('navigation', () => {
     collapseAll,
     updateBreadcrumbs,
     findNavigationItem,
-    findParentNavigationItem,
     findNavigationItemByPath,
     resetNavigation,
     setLoading,
@@ -496,9 +313,6 @@ export const useNavigationStore = defineStore('navigation', () => {
     getBreadcrumbs,
     isNavigationItemVisible,
     isNavigationItemEnabled,
-    addNavigationItem,
-    updateNavigationItem,
-    removeNavigationItem,
     navigateToPath,
     $reset
   }
