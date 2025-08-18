@@ -1,4 +1,4 @@
-# 消防协查系统 Web 前端开发任务清单
+# 消防维护管理系统 Web 前端开发任务清单
 
 ## 项目概述
 
@@ -34,10 +34,10 @@
 
 - [x] 基础组件开发
   - [x] 布局组件 (Header, Sidebar, Footer)
-  - [ ] 导航组件 (WorkflowNavigation)
   - [x] 通用组件 (Loading, Error, Empty)
   - [x] 表单组件 (FormWrapper, FieldGroup)
-  - [x] 数据展示组件 (DataTable, Card)
+  - [x] 数据展示组件 (DataTable, Card, BaseTable)
+  - [ ] 导航组件 (WorkflowNavigation)
 
 - [x] 路由配置
   - [x] 配置多页面路由
@@ -46,21 +46,21 @@
   - [x] 实现路由懒加载
 
 ### 第二阶段: 基础信息管理模块
-- [x] 公司信息管理页面 (`companies.html`)
+- [x] 公司信息管理页面
   - [x] 公司列表展示
   - [x] 公司信息表单
   - [x] 增删改查功能
   - [x] 数据验证和错误处理
   - [x] 与下一步的关联验证
 
-- [x] 人员信息管理页面 (`personnel.html`)
+- [x] 人员信息管理页面
   - [x] 人员列表展示
   - [ ] 人员信息表单
   - [ ] 角色管理 (工程师/操作员)
   - [ ] 人员与公司关联
   - [ ] 权限控制
 
-- [ ] 建筑物信息管理页面 (`buildings.html`)
+- [ ] 建筑物信息管理页面
   - [ ] 建筑物列表展示
   - [ ] 建筑物信息表单
   - [ ] 建筑类型分类
@@ -74,21 +74,21 @@
   - [x] 智能导航系统
 
 ### 第三阶段: 项目管理模块
-- [ ] 项目管理页面 (`projects.html`)
+- [ ] 项目管理页面
   - [ ] 项目列表展示
   - [ ] 项目创建表单
   - [ ] 项目与公司关联
   - [ ] 项目与建筑物关联
   - [ ] 项目状态管理
 
-- [x] 合同管理页面 (`contracts.html`)
+- [x] 合同管理页面
   - [x] 合同列表展示
   - [ ] 合同信息表单
   - [ ] 合同与项目关联
   - [ ] 合同状态管理
   - [ ] 合同有效期跟踪
 
-- [ ] 项目详情页面 (`project-detail.html`)
+- [ ] 项目详情页面
   - [ ] 项目基本信息展示
   - [ ] 关联建筑物列表
   - [ ] 合同信息展示
@@ -102,14 +102,14 @@
   - [x] 合同-项目关联
 
 ### 第四阶段: 维保计划模块
-- [x] 维保计划列表页面 (`maintenance-plans.html`)
+- [x] 维保计划列表页面
   - [x] 计划列表展示
   - [ ] 计划状态管理
   - [ ] 计划筛选和搜索
   - [ ] 计划操作按钮
   - [ ] 计划统计信息
 
-- [ ] 维保计划创建页面 (`plan-create.html`)
+- [ ] 维保计划创建页面
   - [ ] 计划创建向导
   - [ ] 项目选择功能
   - [ ] 维保内容配置
@@ -117,7 +117,7 @@
   - [ ] 任务分配功能
   - [ ] 计划发布功能
 
-- [ ] 计划详情页面 (`plan-detail.html`)
+- [ ] 计划详情页面
   - [ ] 计划基本信息
   - [ ] 任务列表展示
   - [ ] 人员分配情况
@@ -132,21 +132,21 @@
   - [ ] 覆盖率校验
 
 ### 第五阶段: 执业监控模块
-- [x] 执业监控页面 (`operation-monitor.html`)
+- [x] 执业监控页面
   - [ ] 实时统计面板
   - [ ] 人员位置地图
   - [ ] 任务进度表格
   - [ ] 实时数据流
   - [ ] 异常情况预警
 
-- [x] 任务进度跟踪页面 (`task-progress.html`)
+- [x] 任务进度跟踪页面
   - [ ] 任务详情展示
   - [ ] 进度可视化
   - [ ] 人员状态跟踪
   - [ ] 任务筛选功能
   - [ ] 进度导出功能
 
-- [x] 现场数据查看页面 (`field-data.html`)
+- [x] 现场数据查看页面
   - [ ] 现场数据列表
   - [ ] 数据详情展示
   - [ ] 照片查看功能
@@ -160,7 +160,7 @@
   - [ ] 状态同步机制
 
 ### 第六阶段: 报告管理模块
-- [ ] 报告生成页面 (`report-generation.html`)
+- [ ] 报告生成页面
   - [ ] 报告配置表单
   - [ ] 报告类型选择
   - [ ] 项目和周期选择
@@ -168,21 +168,21 @@
   - [ ] 报告预览功能
   - [ ] 报告生成服务
 
-- [ ] 报告审核页面 (`report-review.html`)
+- [ ] 报告审核页面
   - [ ] 报告信息展示
   - [ ] 审核意见输入
   - [ ] 审核流程管理
   - [ ] 审核历史记录
   - [ ] 审核状态跟踪
 
-- [ ] 报告签署页面 (`report-sign.html`)
+- [ ] 报告签署页面
   - [ ] 签署人信息展示
   - [ ] 电子签名功能
   - [ ] 签署确认流程
   - [ ] 签署记录管理
   - [ ] 签署状态跟踪
 
-- [ ] 报告下载页面 (`report-download.html`)
+- [ ] 报告下载页面
   - [ ] 报告列表展示
   - [ ] 报告筛选功能
   - [ ] 报告下载功能
@@ -225,11 +225,11 @@
 - **图表库**: ECharts
 
 ### 2. 架构设计
-- **多页面应用**: 每个主要功能模块独立页面
 - **组件化设计**: 可复用的组件库
 - **状态管理**: 集中式状态管理
 - **路由设计**: 清晰的路由结构
 - **API 设计**: RESTful API 接口
+- **服务层设计**: 统一的API服务层
 
 ### 3. 关键功能实现
 - **工作流管理**: 引导式操作流程
@@ -336,63 +336,99 @@ Fire-Maintenance-Frontend/
 │   │   └── styles/
 │   ├── components/           # 公共组件
 │   │   ├── common/          # 通用组件
-│   │   │   ├── Loading.vue
+│   │   │   ├── BaseTable.vue
+│   │   │   ├── Card.vue
+│   │   │   ├── DataTable.vue
+│   │   │   ├── Empty.vue
 │   │   │   ├── Error.vue
-│   │   │   └── Empty.vue
+│   │   │   ├── Loading.vue
+│   │   │   ├── TableActions.vue
+│   │   │   └── TablePagination.vue
 │   │   ├── forms/           # 表单组件
-│   │   │   ├── FormWrapper.vue
-│   │   │   └── FieldGroup.vue
+│   │   │   ├── CompanyForm.vue
+│   │   │   ├── DynamicFormBuilder.vue
+│   │   │   ├── FieldGroup.vue
+│   │   │   └── FormWrapper.vue
 │   │   ├── layout/          # 布局组件
-│   │   │   ├── AppHeader.vue
-│   │   │   ├── AppSidebar.vue
-│   │   │   └── AppFooter.vue
+│   │   │   └── HomeLayout.vue
 │   │   └── navigation/      # 导航组件
-│   │       └── WorkflowNavigation.vue
+│   │       └── NavigationTree.vue
 │   ├── composables/         # 组合式函数
-│   │   ├── useWorkflow.ts
-│   │   ├── useApi.ts
-│   │   └── useValidation.ts
-│   ├── directives/          # 自定义指令
-│   ├── hooks/               # 业务钩子
-│   ├── pages/               # 页面入口
-│   │   ├── companies.html
-│   │   ├── personnel.html
-│   │   ├── buildings.html
-│   │   ├── projects.html
-│   │   ├── contracts.html
-│   │   ├── maintenance-plans.html
-│   │   ├── plan-create.html
-│   │   ├── plan-detail.html
-│   │   ├── operation-monitor.html
-│   │   ├── task-progress.html
-│   │   ├── field-data.html
-│   │   ├── report-generation.html
-│   │   ├── report-review.html
-│   │   ├── report-sign.html
-│   │   └── report-download.html
-│   ├── stores/              # 状态管理
-│   │   ├── workflow.ts
-│   │   ├── companies.ts
-│   │   ├── projects.ts
-│   │   └── reports.ts
-│   ├── types/               # TypeScript类型定义
-│   │   ├── workflow.ts
+│   │   ├── index.ts
+│   │   ├── useFormValidation.ts
+│   │   └── useWorkflow.ts
+│   ├── config/              # 配置文件
+│   │   ├── formConfig.ts
+│   │   ├── navigation.ts
+│   │   ├── navigationConfig.ts
+│   │   └── routes.ts
+│   ├── pages/               # 页面组件
+│   │   ├── Home.vue
+│   │   ├── Login.vue
+│   │   ├── NotFound.vue
+│   │   ├── companies/
+│   │   │   └── CompanyList.vue
+│   │   ├── personnel/
+│   │   │   └── PersonnelList.vue
+│   │   ├── contracts/
+│   │   │   ├── ContractList.vue
+│   │   │   ├── MaintenanceContractList.vue
+│   │   │   ├── InspectionContractList.vue
+│   │   │   └── EvaluationContractList.vue
+│   │   ├── plan-management/
+│   │   │   ├── PlanManagementList.vue
+│   │   │   ├── MaintenancePlanList.vue
+│   │   │   ├── InspectionPlanList.vue
+│   │   │   └── EvaluationPlanList.vue
+│   │   └── execution-monitor/
+│   │       ├── ExecutionMonitorList.vue
+│   │       ├── ExecutionStatsList.vue
+│   │       └── TaskStatusList.vue
+│   ├── router/              # 路由配置
+│   │   └── index.ts
+│   ├── services/            # API服务
+│   │   ├── auth.ts
+│   │   ├── base.ts
 │   │   ├── company.ts
-│   │   ├── project.ts
-│   │   └── report.ts
-│   ├── utils/               # 工具函数
-│   │   ├── api.ts
-│   │   ├── validation.ts
-│   │   └── helpers.ts
-│   ├── api/                 # API接口定义
-│   │   ├── workflow.ts
+│   │   └── personnel.ts
+│   ├── stores/              # 状态管理
 │   │   ├── companies.ts
-│   │   ├── projects.ts
-│   │   └── reports.ts
-│   └── styles/              # 全局样式
-│       ├── variables.scss
-│       ├── mixins.scss
-│       └── global.scss
+│   │   ├── navigation.ts
+│   │   ├── permissions.ts
+│   │   ├── personnel.ts
+│   │   └── workflow.ts
+│   ├── types/               # TypeScript类型定义
+│   │   ├── company.ts
+│   │   ├── index.ts
+│   │   ├── navigation.ts
+│   │   ├── personnel.ts
+│   │   ├── project.ts
+│   │   ├── report.ts
+│   │   ├── table.ts
+│   │   ├── vite-env.d.ts
+│   │   ├── vue.d.ts
+│   │   └── workflow.ts
+│   ├── utils/               # 工具函数
+│   │   ├── array.ts
+│   │   ├── common.ts
+│   │   ├── cookie.ts
+│   │   ├── date.ts
+│   │   ├── dom.ts
+│   │   ├── format.ts
+│   │   ├── index.ts
+│   │   ├── object.ts
+│   │   ├── performance.ts
+│   │   ├── random.ts
+│   │   ├── request.ts
+│   │   └── validation.ts
+│   ├── styles/              # 全局样式
+│   │   ├── global.scss
+│   │   ├── home-layout.scss
+│   │   ├── mixins.scss
+│   │   ├── navigation.scss
+│   │   └── variables.scss
+│   ├── App.vue              # 根组件
+│   └── main.js              # 入口文件
 ├── package.json
 ├── vite.config.ts
 ├── tsconfig.json
@@ -442,10 +478,10 @@ server {
 ## 质量保证
 
 ### 1. 代码规范
-- [ ] 使用 ESLint 进行代码检查
-- [ ] 使用 Prettier 进行代码格式化
-- [ ] 遵循 TypeScript 严格模式
-- [ ] 统一的命名规范
+- [x] 使用 ESLint 进行代码检查
+- [x] 使用 Prettier 进行代码格式化
+- [x] 遵循 TypeScript 严格模式
+- [x] 统一的命名规范
 - [ ] 完善的代码注释
 
 ### 2. 测试策略
@@ -530,6 +566,6 @@ server {
 
 ---
 
-**最后更新**: 2025-08-15  
+**最后更新**: 2025-08-18  
 **创建者**: HandyWote
 **状态**: 开发进行中 - 项目进度文档已更新，完成度提升至60%
