@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/permissions'
 import { useNavigationStore } from '@/stores/navigation'
 
 const route = useRoute()
+const router = useRouter()
 const authStore = useAuthStore()
 const navigationStore = useNavigationStore()
 
