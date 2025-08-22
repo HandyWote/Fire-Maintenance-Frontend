@@ -4,6 +4,7 @@ import { ElMessage } from 'element-plus'
 import DynamicFormBuilder from './DynamicFormBuilder.vue'
 import type { Company, CompanyFormData } from '@/types/company'
 import { useCompaniesStore } from '@/stores/companies'
+import { companyService } from '@/services/company'
 
 interface CompanyFormProps {
   visible: boolean
@@ -49,7 +50,7 @@ watch(() => props.visible, (newVisible: boolean) => {
   }
 })
 
-watch(() => props.company, (newCompany: Company | null) => {
+watch(() => props.company, (newCompany) => {
   if (newCompany && props.mode === 'edit') {
     initializeForm()
   }
@@ -109,28 +110,47 @@ const handleSubmit = async (data: Record<string, any>) => {
     
     if (props.mode === 'create') {
       // 创建公司
-      const newCompany: Company = {
-        ...companyData as Company,
-        id: '',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+      try {
+        // 尝试调用真实API
+        result = await companyService.createCompany(companyData)
+        ElMessage.success('公司创建成功')
+      } catch (error) {
+        console.warn('API调用失败，使用本地存储:', error)
+        
+        // 使用本地存储
+        const newCompany: Company = {
+          ...companyData as Company,
+          id: Date.now().toString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+        companiesStore.addCompany(newCompany)
+        result = newCompany
+        ElMessage.success('公司创建成功（本地模式）')
       }
-      companiesStore.addCompany(newCompany)
-      result = newCompany
-      ElMessage.success('公司创建成功')
     } else {
       // 编辑公司
       if (!props.company) {
         throw new Error('编辑模式缺少公司数据')
       }
-      const updatedCompany: Company = {
-        ...props.company,
-        ...companyData,
-        updatedAt: new Date().toISOString()
+      
+      try {
+        // 尝试调用真实API
+        result = await companyService.updateCompany(props.company.id, companyData)
+        ElMessage.success('公司信息更新成功')
+      } catch (error) {
+        console.warn('API调用失败，使用本地存储:', error)
+        
+        // 使用本地存储
+        const updatedCompany: Company = {
+          ...props.company,
+          ...companyData,
+          updatedAt: new Date().toISOString()
+        }
+        companiesStore.updateCompany(updatedCompany)
+        result = updatedCompany
+        ElMessage.success('公司信息更新成功（本地模式）')
       }
-      companiesStore.updateCompany(updatedCompany)
-      result = updatedCompany
-      ElMessage.success('公司信息更新成功')
     }
     
     emit('submit', result)

@@ -10,11 +10,13 @@ export interface Personnel {
   status: PersonnelStatus
   skills: string[]
   remarks?: string
+  companyId: string
+  companyName?: string
   createdAt: string
   updatedAt: string
 }
 
-export type PersonnelRole = 'engineer' | 'operator'
+export type PersonnelRole = 'engineer' | 'operator' | string
 export type PersonnelStatus = 'active' | 'inactive' | 'leave'
 
 export interface PersonnelFormData {
@@ -28,6 +30,7 @@ export interface PersonnelFormData {
   status: PersonnelStatus
   skills: string[]
   remarks?: string
+  companyId: string
 }
 
 export interface PersonnelListQuery {
@@ -37,6 +40,7 @@ export interface PersonnelListQuery {
   role?: PersonnelRole
   department?: string
   status?: PersonnelStatus
+  companyId?: string
 }
 
 export interface PersonnelListResponse {

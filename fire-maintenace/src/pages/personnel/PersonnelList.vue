@@ -53,7 +53,7 @@
       <el-row :gutter="20" align="middle">
         <el-col :span="16">
           <el-row :gutter="10">
-            <el-col :span="6">
+            <el-col :span="5">
               <el-input
                 v-model="searchForm.name"
                 placeholder="搜索姓名"
@@ -66,7 +66,7 @@
                 </template>
               </el-input>
             </el-col>
-            <el-col :span="5">
+            <el-col :span="4">
               <el-select
                 v-model="searchForm.role"
                 placeholder="角色"
@@ -77,7 +77,7 @@
                 <el-option label="操作员" value="operator" />
               </el-select>
             </el-col>
-            <el-col :span="5">
+            <el-col :span="4">
               <el-select
                 v-model="searchForm.status"
                 placeholder="状态"
@@ -89,7 +89,22 @@
                 <el-option label="休假" value="leave" />
               </el-select>
             </el-col>
-            <el-col :span="5">
+            <el-col :span="4">
+              <el-select
+                v-model="searchForm.companyId"
+                placeholder="公司"
+                clearable
+                @change="handleSearch"
+              >
+                <el-option
+                  v-for="company in companies"
+                  :key="company.id"
+                  :label="company.name"
+                  :value="company.id"
+                />
+              </el-select>
+            </el-col>
+            <el-col :span="4">
               <el-input
                 v-model="searchForm.department"
                 placeholder="部门"
@@ -173,6 +188,7 @@
         <el-table-column type="selection" width="55" />
         <el-table-column prop="employeeId" label="工号" width="120" />
         <el-table-column prop="name" label="姓名" width="120" />
+        <el-table-column prop="companyName" label="所属公司" width="150" />
         <el-table-column prop="role" label="角色" width="100">
           <template #default="{ row }">
             <el-tag :type="getRoleType(row.role)">
@@ -353,6 +369,9 @@ import {
 import PersonnelForm from '@/components/forms/PersonnelForm.vue'
 import NavigationTree from '@/components/navigation/NavigationTree.vue'
 import { useNavigationStore } from '@/stores/navigation'
+import { usePersonnelStore } from '@/stores/personnel'
+import { useCompaniesStore } from '@/stores/companies'
+import { personnelService } from '@/services/personnel'
 import type {
   Personnel,
   PersonnelStatistics,
@@ -365,6 +384,8 @@ import { formatDate } from '@/utils/date'
 // 使用路由和导航Store
 const router = useRouter()
 const navigationStore = useNavigationStore()
+const personnelStore = usePersonnelStore()
+const companiesStore = useCompaniesStore()
 
 // 计算属性
 const navigationData = computed(() => navigationStore.filteredNavigation)
@@ -398,6 +419,7 @@ const searchForm = reactive({
   name: '',
   role: '',
   status: '',
+  companyId: '',
   department: ''
 })
 
@@ -449,6 +471,42 @@ const getSkillLabel = (skillValue: string) => {
   return skill?.label || skillValue
 }
 
+// 公司数据
+const companies = ref([
+  {
+    id: '1',
+    name: '消防工程公司A',
+    code: 'FIRE001',
+    address: '北京市朝阳区',
+    contactPerson: '张经理',
+    contactPhone: '13800138000',
+    contactEmail: 'zhang@fire.com',
+    businessLicense: 'BJ001',
+    taxNumber: 'TAX001',
+    bankAccount: '6222081234567890',
+    bankName: '工商银行',
+    status: 'active',
+    createdAt: '2023-01-01T00:00:00Z',
+    updatedAt: '2023-01-01T00:00:00Z'
+  },
+  {
+    id: '2',
+    name: '消防安全公司B',
+    code: 'SAFE002',
+    address: '上海市浦东新区',
+    contactPerson: '李经理',
+    contactPhone: '13800138001',
+    contactEmail: 'li@safe.com',
+    businessLicense: 'SH002',
+    taxNumber: 'TAX002',
+    bankAccount: '6222081234567891',
+    bankName: '建设银行',
+    status: 'active',
+    createdAt: '2023-01-02T00:00:00Z',
+    updatedAt: '2023-01-02T00:00:00Z'
+  }
+])
+
 // 模拟数据
 const mockData: Personnel[] = [
   {
@@ -462,6 +520,8 @@ const mockData: Personnel[] = [
     hireDate: '2023-01-15',
     status: 'active',
     skills: ['fire_alarm', 'sprinkler_system', 'smoke_system'],
+    companyId: '1',
+    companyName: '消防工程公司A',
     remarks: '经验丰富的消防工程师',
     createdAt: '2023-01-15T08:00:00Z',
     updatedAt: '2024-01-15T08:00:00Z'
@@ -477,6 +537,8 @@ const mockData: Personnel[] = [
     hireDate: '2023-03-20',
     status: 'active',
     skills: ['fire_extinguisher', 'hydrant_system'],
+    companyId: '2',
+    companyName: '消防安全公司B',
     remarks: '认真负责的操作员',
     createdAt: '2023-03-20T08:00:00Z',
     updatedAt: '2024-01-20T08:00:00Z'
@@ -492,6 +554,8 @@ const mockData: Personnel[] = [
     hireDate: '2022-06-10',
     status: 'leave',
     skills: ['electrical_fire', 'gas_detection', 'emergency_lighting'],
+    companyId: '1',
+    companyName: '消防工程公司A',
     remarks: '电气消防专家',
     createdAt: '2022-06-10T08:00:00Z',
     updatedAt: '2024-01-10T08:00:00Z'
@@ -519,8 +583,11 @@ const loadData = async () => {
     if (searchForm.status) {
       filteredData = filteredData.filter(item => item.status === searchForm.status)
     }
+    if (searchForm.companyId) {
+      filteredData = filteredData.filter(item => item.companyId === searchForm.companyId)
+    }
     if (searchForm.department.trim()) {
-      filteredData = filteredData.filter(item => 
+      filteredData = filteredData.filter(item =>
         item.department.toLowerCase().includes(searchForm.department.toLowerCase().trim())
       )
     }
@@ -568,6 +635,7 @@ const handleRefresh = () => {
     name: '',
     role: '',
     status: '',
+    companyId: '',
     department: ''
   })
   pagination.page = 1
@@ -629,13 +697,14 @@ const handleFormSubmit = async (formData: Partial<Personnel>) => {
     const completeFormData: PersonnelFormData = {
       name: formData.name,
       employeeId: formData.employeeId,
-      role: formData.role as 'engineer' | 'operator',
+      role: formData.role,
       phone: formData.phone,
       email: formData.email,
       department: formData.department,
       hireDate: formData.hireDate,
       status: formData.status as 'active' | 'inactive' | 'leave',
       skills: formData.skills || [],
+      companyId: formData.companyId || '',
       remarks: formData.remarks
     }
 
@@ -646,6 +715,7 @@ const handleFormSubmit = async (formData: Partial<Personnel>) => {
         mockData[index] = {
           ...mockData[index],
           ...completeFormData,
+          companyName: companies.value.find(c => c.id === formData.companyId)?.name || mockData[index].companyName,
           updatedAt: new Date().toISOString()
         }
         ElMessage.success('更新成功')
@@ -655,6 +725,7 @@ const handleFormSubmit = async (formData: Partial<Personnel>) => {
       const newPersonnel: Personnel = {
         id: Date.now().toString(),
         ...completeFormData,
+        companyName: companies.value.find(c => c.id === formData.companyId)?.name || '',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       }

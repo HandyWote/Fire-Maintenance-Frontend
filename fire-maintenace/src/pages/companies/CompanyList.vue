@@ -52,6 +52,7 @@ const columns = ref<TableColumn[]>([
     label: '状态',
     width: '100',
     formatter: (row: Company) => {
+      if (!row?.status) return ''
       const status = statusMap[row.status as keyof typeof statusMap]
       return status ? status.label : row.status
     }
@@ -61,6 +62,7 @@ const columns = ref<TableColumn[]>([
     label: '创建时间',
     width: '160',
     formatter: (row: Company) => {
+      if (!row?.createdAt) return ''
       return new Date(row.createdAt).toLocaleString()
     }
   }
@@ -123,7 +125,7 @@ const actions = ref<TableAction[]>([
     label: '启用',
     type: 'success',
     size: 'small',
-    visible: (row: Company) => row.status === 'inactive',
+    visible: (row: Company) => row?.status === 'inactive',
     onClick: (row: Company, index: number) => {
       handleEnable(row, index)
     }
@@ -132,7 +134,7 @@ const actions = ref<TableAction[]>([
     label: '禁用',
     type: 'warning',
     size: 'small',
-    visible: (row: Company) => row.status === 'active',
+    visible: (row: Company) => row?.status === 'active',
     onClick: (row: Company, index: number) => {
       handleDisable(row, index)
     }
@@ -155,7 +157,88 @@ const loadData = async () => {
   } catch (err) {
     error.value = err as Error | string
     console.error('加载企业数据失败:', err)
-    ElMessage.error('加载企业数据失败')
+    ElMessage.error('加载企业数据失败，将使用模拟数据')
+    
+    // 如果API调用失败，使用模拟数据作为后备
+    try {
+      // 模拟数据
+      const mockData: Company[] = [
+        {
+          id: '1',
+          name: '消防工程公司A',
+          code: 'FIRE001',
+          address: '北京市朝阳区消防科技园',
+          contactPerson: '张经理',
+          contactPhone: '13800138000',
+          contactEmail: 'zhang@fire.com',
+          businessLicense: 'BJ001',
+          taxNumber: 'TAX001',
+          bankAccount: '6222081234567890',
+          bankName: '工商银行',
+          status: 'active',
+          createdAt: '2023-01-01T00:00:00Z',
+          updatedAt: '2023-01-01T00:00:00Z'
+        },
+        {
+          id: '2',
+          name: '消防安全公司B',
+          code: 'SAFE002',
+          address: '上海市浦东新区安全科技园',
+          contactPerson: '李经理',
+          contactPhone: '13800138001',
+          contactEmail: 'li@safe.com',
+          businessLicense: 'SH002',
+          taxNumber: 'TAX002',
+          bankAccount: '6222081234567891',
+          bankName: '建设银行',
+          status: 'active',
+          createdAt: '2023-01-02T00:00:00Z',
+          updatedAt: '2023-01-02T00:00:00Z'
+        },
+        {
+          id: '3',
+          name: '消防设备公司C',
+          code: 'EQUIP003',
+          address: '广州市天河区设备产业园',
+          contactPerson: '王经理',
+          contactPhone: '13800138002',
+          contactEmail: 'wang@equipment.com',
+          businessLicense: 'GZ003',
+          taxNumber: 'TAX003',
+          bankAccount: '6222081234567892',
+          bankName: '农业银行',
+          status: 'inactive',
+          createdAt: '2023-02-15T00:00:00Z',
+          updatedAt: '2023-02-15T00:00:00Z'
+        },
+        {
+          id: '4',
+          name: '消防检测公司D',
+          code: 'TEST004',
+          address: '深圳市南山区检测中心',
+          contactPerson: '赵经理',
+          contactPhone: '13800138003',
+          contactEmail: 'zhao@test.com',
+          businessLicense: 'SZ004',
+          taxNumber: 'TAX004',
+          bankAccount: '6222081234567893',
+          bankName: '中国银行',
+          status: 'pending',
+          createdAt: '2023-03-20T00:00:00Z',
+          updatedAt: '2023-03-20T00:00:00Z'
+        }
+      ]
+      
+      // 分页处理
+      const startIndex = (pagination.value.page - 1) * pagination.value.pageSize
+      const endIndex = startIndex + pagination.value.pageSize
+      
+      tableData.value = mockData.slice(startIndex, endIndex)
+      pagination.value.total = mockData.length
+    } catch (mockError) {
+      console.error('加载模拟数据也失败:', mockError)
+      ElMessage.error('无法加载任何数据，请稍后再试')
+    }
   } finally {
     loading.value = false
   }

@@ -16,35 +16,23 @@
           />
         </el-form-item>
       </el-col>
-      <el-col :span="12">
-        <el-form-item label="工号" prop="employeeId">
-          <el-input
-            v-model="formData.employeeId"
-            placeholder="请输入工号"
-            clearable
-          />
-        </el-form-item>
-      </el-col>
     </el-row>
 
     <el-row :gutter="20">
-      <el-col :span="12">
-        <el-form-item label="角色" prop="role">
-          <el-select
-            v-model="formData.role"
-            placeholder="请选择角色"
-            style="width: 100%"
-          >
-            <el-option label="工程师" value="engineer" />
-            <el-option label="操作员" value="operator" />
-          </el-select>
-        </el-form-item>
-      </el-col>
       <el-col :span="12">
         <el-form-item label="联系电话" prop="phone">
           <el-input
             v-model="formData.phone"
             placeholder="请输入联系电话"
+            clearable
+          />
+        </el-form-item>
+      </el-col>
+      <el-col :span="12">
+        <el-form-item label="工号" prop="employeeId">
+          <el-input
+            v-model="formData.employeeId"
+            placeholder="请输入工号"
             clearable
           />
         </el-form-item>
@@ -62,6 +50,27 @@
         </el-form-item>
       </el-col>
       <el-col :span="12">
+        <el-form-item label="所属公司" prop="companyId">
+          <el-select
+            v-model="formData.companyId"
+            placeholder="请选择所属公司"
+            style="width: 100%"
+            filterable
+            clearable
+          >
+            <el-option
+              v-for="company in companies"
+              :key="company.id"
+              :label="company.name"
+              :value="company.id"
+            />
+          </el-select>
+        </el-form-item>
+      </el-col>
+    </el-row>
+
+    <el-row :gutter="20">
+      <el-col :span="12">
         <el-form-item label="部门" prop="department">
           <el-input
             v-model="formData.department"
@@ -70,9 +79,6 @@
           />
         </el-form-item>
       </el-col>
-    </el-row>
-
-    <el-row :gutter="20">
       <el-col :span="12">
         <el-form-item label="入职日期" prop="hireDate">
           <el-date-picker
@@ -85,6 +91,9 @@
           />
         </el-form-item>
       </el-col>
+    </el-row>
+
+    <el-row :gutter="20">
       <el-col :span="12">
         <el-form-item label="状态" prop="status">
           <el-select
@@ -95,6 +104,20 @@
             <el-option label="在职" value="active" />
             <el-option label="离职" value="inactive" />
             <el-option label="休假" value="leave" />
+          </el-select>
+        </el-form-item>
+      </el-col>
+      <el-col :span="12">
+        <el-form-item label="角色" prop="role">
+          <el-select
+            v-model="formData.role"
+            placeholder="请选择角色"
+            style="width: 100%"
+            allow-create
+            filterable
+          >
+            <el-option label="工程师" value="engineer" />
+            <el-option label="操作员" value="operator" />
           </el-select>
         </el-form-item>
       </el-col>
@@ -147,9 +170,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive, watch, onMounted } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import type { Personnel } from '@/types/personnel'
+import { useCompaniesStore } from '@/stores/companies'
+import { companyService } from '@/services/company'
+import type { Company } from '@/types/company'
 
 interface Props {
   modelValue?: Partial<Personnel>
@@ -169,6 +195,8 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<Emits>()
 
 const formRef = ref<FormInstance>()
+const companiesStore = useCompaniesStore()
+const companies = ref<Company[]>([])
 
 const formData = reactive<Partial<Personnel>>({
   name: '',
@@ -180,6 +208,7 @@ const formData = reactive<Partial<Personnel>>({
   hireDate: '',
   status: 'active',
   skills: [],
+  companyId: '',
   remarks: ''
 })
 
@@ -201,6 +230,9 @@ const rules: FormRules = {
   ],
   email: [
     { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' }
+  ],
+  companyId: [
+    { required: true, message: '请选择所属公司', trigger: 'change' }
   ],
   status: [
     { required: true, message: '请选择状态', trigger: 'change' }
@@ -233,12 +265,66 @@ const handleCancel = () => {
   emit('cancel')
 }
 
+// 获取公司列表
+const loadCompanies = async () => {
+  try {
+    // 调用API获取公司列表
+    const response = await companyService.getAllCompanies({
+      page: 1,
+      pageSize: 100 // 获取足够多的公司数据
+    })
+    companies.value = response.data
+  } catch (error) {
+    console.error('加载公司列表失败:', error)
+    // 如果API失败，使用模拟数据作为后备
+    companies.value = [
+      {
+        id: '1',
+        name: '消防工程公司A',
+        code: 'FIRE001',
+        address: '北京市朝阳区',
+        contactPerson: '张经理',
+        contactPhone: '13800138000',
+        contactEmail: 'zhang@fire.com',
+        businessLicense: 'BJ001',
+        taxNumber: 'TAX001',
+        bankAccount: '6222081234567890',
+        bankName: '工商银行',
+        status: 'active',
+        createdAt: '2023-01-01T00:00:00Z',
+        updatedAt: '2023-01-01T00:00:00Z'
+      },
+      {
+        id: '2',
+        name: '消防安全公司B',
+        code: 'SAFE002',
+        address: '上海市浦东新区',
+        contactPerson: '李经理',
+        contactPhone: '13800138001',
+        contactEmail: 'li@safe.com',
+        businessLicense: 'SH002',
+        taxNumber: 'TAX002',
+        bankAccount: '6222081234567891',
+        bankName: '建设银行',
+        status: 'active',
+        createdAt: '2023-01-02T00:00:00Z',
+        updatedAt: '2023-01-02T00:00:00Z'
+      }
+    ]
+  }
+}
+
 // 重置表单
 const resetForm = () => {
   if (formRef.value) {
     formRef.value.resetFields()
   }
 }
+
+// 组件挂载时加载公司列表
+onMounted(() => {
+  loadCompanies()
+})
 
 defineExpose({
   resetForm

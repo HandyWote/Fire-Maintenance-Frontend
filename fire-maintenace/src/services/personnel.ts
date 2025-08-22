@@ -1,5 +1,5 @@
 import { BaseService, ServiceFactory, ApiError } from './base'
-import type { Personnel, PersonnelFormData, PersonnelQueryParams, PersonnelResponse, PersonnelStatistics } from '@/types/personnel'
+import type { Personnel, PersonnelFormData, PersonnelListQuery, PersonnelStatistics } from '@/types/personnel'
 import type { PageQueryParams, PageResponse } from '@/types'
 import { Cache } from '@/utils/performance'
 
@@ -11,7 +11,7 @@ export class PersonnelService extends BaseService {
   protected baseUrl = '/api/personnel'
 
   // 获取所有人员
-  async getAllPersonnel(params?: PersonnelQueryParams): Promise<PersonnelResponse> {
+  async getAllPersonnel(params?: PersonnelListQuery): Promise<PageResponse<Personnel>> {
     const cacheKey = `personnel_all_${JSON.stringify(params)}`
     const cached = cache.get(cacheKey)
     if (cached) {
@@ -21,7 +21,7 @@ export class PersonnelService extends BaseService {
     console.info(`[PersonnelService] getAllPersonnel called with params:`, params)
     const result = await this.getAll<Personnel>(params)
     cache.set(cacheKey, result)
-    return result as PersonnelResponse
+    return result as PageResponse<Personnel>
   }
 
   // 根据ID获取人员
@@ -95,7 +95,7 @@ export class PersonnelService extends BaseService {
   }
 
   // 搜索人员
-  async searchPersonnel(keyword: string, params?: PersonnelQueryParams): Promise<PersonnelResponse> {
+  async searchPersonnel(keyword: string, params?: PersonnelListQuery): Promise<PageResponse<Personnel>> {
     const cacheKey = `personnel_search_${keyword}_${JSON.stringify(params)}`
     const cached = cache.get(cacheKey)
     if (cached) {
@@ -105,7 +105,7 @@ export class PersonnelService extends BaseService {
     console.info(`[PersonnelService] searchPersonnel called with keyword:`, keyword, 'params:', params)
     const result = await this.search<Personnel>(keyword, params)
     cache.set(cacheKey, result, 2 * 60 * 1000) // 2分钟缓存
-    return result as PersonnelResponse
+    return result as PageResponse<Personnel>
   }
 
   // 获取人员统计信息
@@ -141,7 +141,7 @@ export class PersonnelService extends BaseService {
   }
 
   // 获取公司人员列表
-  async getCompanyPersonnel(companyId: string, params?: PersonnelQueryParams): Promise<PersonnelResponse> {
+  async getCompanyPersonnel(companyId: string, params?: PersonnelListQuery): Promise<PageResponse<Personnel>> {
     const cacheKey = `personnel_company_${companyId}_${JSON.stringify(params)}`
     const cached = cache.get(cacheKey)
     if (cached) {
@@ -166,7 +166,7 @@ export class PersonnelService extends BaseService {
   }
 
   // 获取部门人员列表
-  async getDepartmentPersonnel(department: string, params?: PersonnelQueryParams): Promise<PersonnelResponse> {
+  async getDepartmentPersonnel(department: string, params?: PersonnelListQuery): Promise<PageResponse<Personnel>> {
     const cacheKey = `personnel_department_${department}_${JSON.stringify(params)}`
     const cached = cache.get(cacheKey)
     if (cached) {
@@ -191,7 +191,7 @@ export class PersonnelService extends BaseService {
   }
 
   // 获取角色人员列表
-  async getRolePersonnel(role: string, params?: PersonnelQueryParams): Promise<PersonnelResponse> {
+  async getRolePersonnel(role: string, params?: PersonnelListQuery): Promise<PageResponse<Personnel>> {
     const cacheKey = `personnel_role_${role}_${JSON.stringify(params)}`
     const cached = cache.get(cacheKey)
     if (cached) {
@@ -232,9 +232,6 @@ export class PersonnelService extends BaseService {
       errors.push('部门不能为空')
     }
     
-    if (!data.position || data.position.trim().length === 0) {
-      errors.push('职位不能为空')
-    }
     
     if (!data.phone || data.phone.trim().length === 0) {
       errors.push('联系电话不能为空')

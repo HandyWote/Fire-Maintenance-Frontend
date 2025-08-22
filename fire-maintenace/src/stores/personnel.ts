@@ -1,60 +1,12 @@
 import { defineStore, acceptHMRUpdate } from 'pinia'
 import { ref, computed } from 'vue'
-
-export interface Personnel {
-  id: string
-  name: string
-  employeeId: string
-  department: string
-  position: string
-  phone: string
-  email: string
-  companyId: string
-  companyName: string
-  role: 'admin' | 'manager' | 'engineer' | 'operator' | 'inspector'
-  status: 'active' | 'inactive' | 'pending'
-  gender?: 'male' | 'female'
-  age?: number
-  idNumber?: string
-  address?: string
-  emergencyContact?: string
-  emergencyPhone?: string
-  hireDate?: string
-  certificateNumber?: string
-  certificateExpiryDate?: string
-  description?: string
-  createdAt: string
-  updatedAt: string
-}
-
-export interface PersonnelFormData {
-  name: string
-  employeeId: string
-  department: string
-  position: string
-  phone: string
-  email: string
-  companyId: string
-  role: 'admin' | 'manager' | 'engineer' | 'operator' | 'inspector'
-  status: 'active' | 'inactive' | 'pending'
-  gender?: 'male' | 'female'
-  age?: number
-  idNumber?: string
-  address?: string
-  emergencyContact?: string
-  emergencyPhone?: string
-  hireDate?: string
-  certificateNumber?: string
-  certificateExpiryDate?: string
-  description?: string
-}
+import type { Personnel, PersonnelFormData, PersonnelRole, PersonnelStatus } from '@/types/personnel'
 
 export interface PersonnelFilter {
   keyword?: string
   department?: string
-  position?: string
-  role?: 'admin' | 'manager' | 'engineer' | 'operator' | 'inspector'
-  status?: 'active' | 'inactive' | 'pending'
+  role?: PersonnelRole
+  status?: PersonnelStatus
   companyId?: string
   dateRange?: [string, string]
 }
@@ -96,18 +48,13 @@ export const usePersonnelStore = defineStore('personnel', () => {
         p.name.toLowerCase().includes(keyword) ||
         p.employeeId.toLowerCase().includes(keyword) ||
         p.department.toLowerCase().includes(keyword) ||
-        p.position.toLowerCase().includes(keyword)
+        (p.companyName && p.companyName.toLowerCase().includes(keyword))
       )
     }
 
     // 部门过滤
     if (filter.value.department) {
       result = result.filter((p: Personnel) => p.department === filter.value.department)
-    }
-
-    // 职位过滤
-    if (filter.value.position) {
-      result = result.filter((p: Personnel) => p.position === filter.value.position)
     }
 
     // 角色过滤
@@ -155,21 +102,15 @@ export const usePersonnelStore = defineStore('personnel', () => {
     return personnel.value.filter((p: Personnel) => p.status === 'inactive')
   })
 
-  const pendingPersonnel = computed(() => {
-    return personnel.value.filter((p: Personnel) => p.status === 'pending')
+  const leavePersonnel = computed(() => {
+    return personnel.value.filter((p: Personnel) => p.status === 'leave')
   })
 
   const personnelByRole = computed(() => {
-    const roleCount = {
-      admin: 0,
-      manager: 0,
-      engineer: 0,
-      operator: 0,
-      inspector: 0
-    }
+    const roleCount: Record<string, number> = {}
     
     personnel.value.forEach((p: Personnel) => {
-      roleCount[p.role]++
+      roleCount[p.role] = (roleCount[p.role] || 0) + 1
     })
     
     return roleCount
@@ -183,6 +124,16 @@ export const usePersonnelStore = defineStore('personnel', () => {
     })
     
     return departmentCount
+  })
+
+  const personnelByCompany = computed(() => {
+    const companyCount: Record<string, number> = {}
+    
+    personnel.value.forEach((p: Personnel) => {
+      companyCount[p.companyName || p.companyId] = (companyCount[p.companyName || p.companyId] || 0) + 1
+    })
+    
+    return companyCount
   })
 
   // 动作
@@ -273,10 +224,6 @@ export const usePersonnelStore = defineStore('personnel', () => {
       errors.department = '部门不能为空'
     }
 
-    if (!data.position || data.position.trim() === '') {
-      errors.position = '职位不能为空'
-    }
-
     if (!data.phone || data.phone.trim() === '') {
       errors.phone = '联系电话不能为空'
     } else if (!/^1[3-9]\d{9}$/.test(data.phone)) {
@@ -309,17 +256,13 @@ export const usePersonnelStore = defineStore('personnel', () => {
       '员工编号',
       '姓名',
       '部门',
-      '职位',
       '联系电话',
       '邮箱',
       '所属公司',
       '角色',
       '状态',
-      '性别',
-      '年龄',
       '入职日期',
-      '证书编号',
-      '证书到期日期',
+      '专业技能',
       '创建时间'
     ]
 
@@ -327,20 +270,13 @@ export const usePersonnelStore = defineStore('personnel', () => {
       p.employeeId,
       p.name,
       p.department,
-      p.position,
       p.phone,
-      p.email,
-      p.companyName,
-      p.role === 'admin' ? '管理员' : 
-       p.role === 'manager' ? '经理' : 
-       p.role === 'engineer' ? '工程师' : 
-       p.role === 'operator' ? '操作员' : '检查员',
-      p.status === 'active' ? '在职' : p.status === 'inactive' ? '离职' : '待审核',
-      p.gender === 'male' ? '男' : p.gender === 'female' ? '女' : '',
-      p.age || '',
-      p.hireDate || '',
-      p.certificateNumber || '',
-      p.certificateExpiryDate || '',
+      p.email || '',
+      p.companyName || '',
+      p.role,
+      p.status === 'active' ? '在职' : p.status === 'inactive' ? '离职' : '休假',
+      p.hireDate,
+      p.skills.join(', '),
       new Date(p.createdAt).toLocaleDateString()
     ])
 
@@ -384,9 +320,10 @@ export const usePersonnelStore = defineStore('personnel', () => {
     totalPersonnel,
     activePersonnel,
     inactivePersonnel,
-    pendingPersonnel,
+    leavePersonnel,
     personnelByRole,
     personnelByDepartment,
+    personnelByCompany,
 
     // 动作
     setPersonnel,
