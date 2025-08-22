@@ -21,7 +21,7 @@
       </div>
     </div>
 
-    <ElRow :gutter="20" class="main-content">
+    <ElRow :gutter="24" class="main-content">
       <!-- 左侧导航树 -->
       <ElCol :span="4">
         <ElCard class="navigation-card">
@@ -697,6 +697,7 @@ onMounted(() => {
 
 <style scoped lang="scss">
 // 导入外部样式文件
+@import '@/styles/variables.scss';
 @import '@/styles/navigation.scss';
 @import '@/styles/home-layout.scss';
 
@@ -711,7 +712,7 @@ onMounted(() => {
     justify-content: space-between;
     padding: 0 20px;
     margin: 20px;
-    margin-bottom: 0;
+    margin-bottom: $spacing-lg;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     
     .breadcrumb-area {
@@ -748,6 +749,16 @@ onMounted(() => {
   .main-content {
     height: calc(100vh - 90px);
     margin: 0 20px 20px 20px;
+    
+    .el-col {
+      &:first-child {
+        padding-right: $spacing-md;
+      }
+      
+      &:last-child {
+        padding-left: $spacing-md;
+      }
+    }
     
     .navigation-card {
       height: 100%;
