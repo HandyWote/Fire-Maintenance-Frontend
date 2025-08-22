@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import DataTable from '@/components/common/DataTable.vue'
 import Card from '@/components/common/Card.vue'
@@ -8,6 +8,7 @@ import { companyService } from '@/services/company'
 import type { TableColumn, TableAction, TablePagination } from '@/types/table'
 import type { Company } from '@/types/company'
 import { useCompaniesStore } from '@/stores/companies'
+import { useWorkflowStore } from '@/stores/workflow'
 
 // 表格列定义
 const columns = ref<TableColumn[]>([
@@ -86,6 +87,12 @@ const showCompanyForm = ref(false)
 const formMode = ref<'create' | 'edit'>('create')
 const currentCompany = ref<Company | null>(null)
 const companiesStore = useCompaniesStore()
+const workflowStore = useWorkflowStore()
+
+// 工作流相关计算属性
+const workflowProgress = computed(() => workflowStore.progress)
+const currentStep = computed(() => workflowStore.currentStepInfo)
+const isCurrentStepCompleted = computed(() => workflowStore.isCurrentStepCompleted)
 
 // 状态映射
 const statusMap = {
@@ -241,6 +248,12 @@ const handlePageSizeChange = (pageSize: number) => {
   loadData()
 }
 
+// 完成当前工作流步骤
+const completeCurrentStep = () => {
+  workflowStore.completeStep(workflowStore.currentStep)
+  ElMessage.success(`"${currentStep.value?.title || '当前步骤'}" 已标记为完成`)
+}
+
 // 组件挂载时加载数据
 onMounted(() => {
   loadData()
@@ -249,6 +262,40 @@ onMounted(() => {
 
 <template>
   <div class="company-list">
+    <!-- 工作流状态卡片 -->
+    <Card title="工作流进度" class="workflow-status-card">
+      <div class="workflow-status">
+        <div class="progress-info">
+          <span class="current-step">当前步骤: {{ currentStep?.title || '未知' }}</span>
+          <span class="progress-percentage">进度: {{ workflowProgress }}%</span>
+        </div>
+        <el-progress
+          :percentage="workflowProgress"
+          :color="isCurrentStepCompleted ? '#67c23a' : '#409eff'"
+        />
+        <div class="step-actions">
+          <el-button
+            type="success"
+            size="small"
+            :disabled="isCurrentStepCompleted"
+            @click="completeCurrentStep"
+          >
+            <el-icon><Check /></el-icon>
+            完成当前步骤
+          </el-button>
+          <el-button
+            type="primary"
+            size="small"
+            @click="workflowStore.goToNextStep"
+            :disabled="!workflowStore.canGoToNext"
+          >
+            下一步
+            <el-icon><ArrowRight /></el-icon>
+          </el-button>
+        </div>
+      </div>
+    </Card>
+
     <Card title="企业管理">
       <!-- 操作按钮区域 -->
       <div class="table-actions">
@@ -284,6 +331,35 @@ onMounted(() => {
 <style scoped>
 .company-list {
   padding: 20px;
+}
+
+.workflow-status-card {
+  margin-bottom: 20px;
+}
+
+.workflow-status {
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    
+    .current-step {
+      font-weight: 600;
+      color: #303133;
+    }
+    
+    .progress-percentage {
+      color: #909399;
+      font-size: 14px;
+    }
+  }
+  
+  .step-actions {
+    margin-top: 16px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+  }
 }
 
 .table-actions {

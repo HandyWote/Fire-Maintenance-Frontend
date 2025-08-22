@@ -1,17 +1,17 @@
 import { defineStore, acceptHMRUpdate } from 'pinia'
 import { ref, computed } from 'vue'
-
-export interface WorkflowStep {
-  id: string
-  name: string
-  title: string
-  description: string
-  completed: boolean
-  enabled: boolean
-  order: number
-  icon?: string
-  path?: string
-}
+import { workflowSteps } from '@/config/workflowConfig'
+import type { WorkflowStep, WorkflowStatus } from '@/types/workflow'
+import { 
+  getWorkflowStep, 
+  getNextWorkflowStep, 
+  getPreviousWorkflowStep,
+  canNavigateToStep,
+  getWorkflowProgress,
+  getAvailableSteps,
+  isWorkflowCompleted,
+  getWorkflowNavigation
+} from '@/config/workflowConfig'
 
 export interface WorkflowState {
   currentStep: string
@@ -22,109 +22,21 @@ export interface WorkflowState {
 
 export const useWorkflowStore = defineStore('workflow', () => {
   // 状态定义
-  const currentStep = ref<string>('companies')
-  const steps = ref<WorkflowStep[]>([
-    {
-      id: 'companies',
-      name: 'companies',
-      title: '企业管理',
-      description: '管理企业基本信息',
-      completed: false,
-      enabled: true,
-      order: 1,
-      icon: 'OfficeBuilding',
-      path: '/companies'
-    },
-    {
-      id: 'personnel',
-      name: 'personnel', 
-      title: '人员管理',
-      description: '管理人员信息',
-      completed: false,
-      enabled: true,
-      order: 2,
-      icon: 'User',
-      path: '/personnel'
-    },
-    {
-      id: 'buildings',
-      name: 'buildings',
-      title: '建筑管理', 
-      description: '管理建筑物信息',
-      completed: false,
-      enabled: true,
-      order: 3,
-      icon: 'House',
-      path: '/buildings'
-    },
-    {
-      id: 'projects',
-      name: 'projects',
-      title: '项目管理',
-      description: '管理项目信息',
-      completed: false,
-      enabled: true,
-      order: 4,
-      icon: 'Document',
-      path: '/projects'
-    },
-    {
-      id: 'contracts',
-      name: 'contracts',
-      title: '合同管理',
-      description: '管理合同信息',
-      completed: false,
-      enabled: true,
-      order: 5,
-      icon: 'Files',
-      path: '/contracts'
-    },
-    {
-      id: 'maintenance-plans',
-      name: 'maintenance-plans',
-      title: '维保计划',
-      description: '制定维保计划',
-      completed: false,
-      enabled: true,
-      order: 6,
-      icon: 'Calendar',
-      path: '/maintenance-plans'
-    },
-    {
-      id: 'operation-monitor',
-      name: 'operation-monitor',
-      title: '执行监控',
-      description: '监控执行状态',
-      completed: false,
-      enabled: true,
-      order: 7,
-      icon: 'Monitor',
-      path: '/operation-monitor'
-    },
-    {
-      id: 'report-generation',
-      name: 'report-generation',
-      title: '报告生成',
-      description: '生成维保报告',
-      completed: false,
-      enabled: true,
-      order: 8,
-      icon: 'DocumentCopy',
-      path: '/report-generation'
-    }
-  ])
+  const currentStep = ref<string>(workflowSteps[0]?.id || 'basic-info')
+  const steps = ref<WorkflowStep[]>(workflowSteps.map(step => ({
+    ...step,
+    isCompleted: false
+  })))
   const completedSteps = ref<string[]>([])
   const data = ref<Record<string, any>>({})
 
   // 计算属性
   const currentStepInfo = computed(() => {
-    return steps.value.find(step => step.id === currentStep.value)
+    return getWorkflowStep(currentStep.value)
   })
 
   const progress = computed(() => {
-    const totalSteps = steps.value.filter(step => step.enabled).length
-    const completedCount = completedSteps.value.length
-    return totalSteps > 0 ? (completedCount / totalSteps) * 100 : 0
+    return getWorkflowProgress(completedSteps.value)
   })
 
   const isCurrentStepCompleted = computed(() => {
@@ -132,15 +44,11 @@ export const useWorkflowStore = defineStore('workflow', () => {
   })
 
   const nextStep = computed(() => {
-    const currentIndex = steps.value.findIndex(step => step.id === currentStep.value)
-    const nextSteps = steps.value.slice(currentIndex + 1)
-    return nextSteps.find(step => step.enabled)
+    return getNextWorkflowStep(currentStep.value)
   })
 
   const previousStep = computed(() => {
-    const currentIndex = steps.value.findIndex(step => step.id === currentStep.value)
-    const previousSteps = steps.value.slice(0, currentIndex)
-    return previousSteps.reverse().find(step => step.enabled)
+    return getPreviousWorkflowStep(currentStep.value)
   })
 
   const canGoToNext = computed(() => {
@@ -151,10 +59,23 @@ export const useWorkflowStore = defineStore('workflow', () => {
     return previousStep.value !== undefined
   })
 
+  const workflowStatus = computed((): WorkflowStatus => {
+    return {
+      currentStep: currentStep.value,
+      completedSteps: completedSteps.value,
+      availableSteps: getAvailableSteps(completedSteps.value),
+      progress: progress.value,
+      data: data.value
+    }
+  })
+
+  const workflowNavigation = computed(() => {
+    return getWorkflowNavigation(currentStep.value, completedSteps.value)
+  })
+
   // 动作
   function setCurrentStep(stepId: string) {
-    const step = steps.value.find(s => s.id === stepId)
-    if (step && step.enabled) {
+    if (canNavigateToStep(stepId, completedSteps.value)) {
       currentStep.value = stepId
     }
   }
@@ -165,7 +86,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
       // 更新步骤状态
       const step = steps.value.find(s => s.id === stepId)
       if (step) {
-        step.completed = true
+        step.isCompleted = true
       }
     }
   }
@@ -177,7 +98,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
       // 更新步骤状态
       const step = steps.value.find(s => s.id === stepId)
       if (step) {
-        step.completed = false
+        step.isCompleted = false
       }
     }
   }
@@ -203,35 +124,28 @@ export const useWorkflowStore = defineStore('workflow', () => {
   }
 
   function resetWorkflow() {
-    currentStep.value = 'companies'
+    currentStep.value = workflowSteps[0]?.id || 'basic-info'
     completedSteps.value = []
     data.value = {}
     steps.value.forEach(step => {
-      step.completed = false
+      step.isCompleted = false
     })
   }
 
-  function enableStep(stepId: string) {
-    const step = steps.value.find(s => s.id === stepId)
-    if (step) {
-      step.enabled = true
-    }
+  function isStepCompleted(stepId: string): boolean {
+    return completedSteps.value.includes(stepId)
   }
 
-  function disableStep(stepId: string) {
-    const step = steps.value.find(s => s.id === stepId)
-    if (step) {
-      step.enabled = false
-    }
+  function isStepAvailable(stepId: string): boolean {
+    return canNavigateToStep(stepId, completedSteps.value)
   }
 
-  function updateStepOrder(stepId: string, newOrder: number) {
-    const step = steps.value.find(s => s.id === stepId)
-    if (step) {
-      step.order = newOrder
-      // 重新排序
-      steps.value.sort((a, b) => a.order - b.order)
-    }
+  function isWorkflowComplete(): boolean {
+    return isWorkflowCompleted(completedSteps.value)
+  }
+
+  function getStepNavigation(stepId: string) {
+    return getWorkflowNavigation(stepId, completedSteps.value)
   }
 
   // 重置方法
@@ -254,6 +168,8 @@ export const useWorkflowStore = defineStore('workflow', () => {
     previousStep,
     canGoToNext,
     canGoToPrevious,
+    workflowStatus,
+    workflowNavigation,
     
     // 动作
     setCurrentStep,
@@ -264,9 +180,10 @@ export const useWorkflowStore = defineStore('workflow', () => {
     saveStepData,
     getStepData,
     resetWorkflow,
-    enableStep,
-    disableStep,
-    updateStepOrder,
+    isStepCompleted,
+    isStepAvailable,
+    isWorkflowComplete,
+    getStepNavigation,
     $reset
   }
 })

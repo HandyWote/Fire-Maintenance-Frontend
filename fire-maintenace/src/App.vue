@@ -1,6 +1,53 @@
 <script setup>
-import { RouterView } from 'vue-router'
+import { RouterView, useRoute, useRouter } from 'vue-router'
+import { computed, onMounted } from 'vue'
 import { ElContainer, ElHeader, ElMain, ElFooter } from 'element-plus'
+import WorkflowLayout from '@/components/layout/WorkflowLayout.vue'
+import HomeLayout from '@/components/layout/HomeLayout.vue'
+import { useAuthStore } from '@/stores/permissions'
+import { useNavigationStore } from '@/stores/navigation'
+
+const route = useRoute()
+const authStore = useAuthStore()
+const navigationStore = useNavigationStore()
+
+// 判断当前路由是否需要使用工作流布局
+const useWorkflowLayout = computed(() => {
+  // 这些路由将使用工作流布局
+  const workflowRoutes = [
+    '/companies',
+    '/projects',
+    '/plans',
+    '/monitor',
+    '/report-generation',
+    '/report-download'
+  ]
+  
+  return workflowRoutes.some(routePath =>
+    route.path === routePath || route.path.startsWith(routePath + '/')
+  )
+})
+
+// 判断当前路由是否需要使用首页布局
+const useHomeLayout = computed(() => {
+  return route.path === '/' || route.path === '/home'
+})
+
+// 导航数据
+const navigationData = computed(() => navigationStore.filteredNavigation)
+const currentNode = computed(() => navigationStore.currentNavigation?.id || '')
+
+// 处理导航节点点击
+const handleNodeClick = (data) => {
+  if (!data.path) return
+  navigationStore.setCurrentNavigation(data)
+  router.push(data.path)
+}
+
+// 初始化认证状态
+onMounted(() => {
+  authStore.initializeAuth()
+})
 </script>
 
 <template>
@@ -17,7 +64,21 @@ import { ElContainer, ElHeader, ElMain, ElFooter } from 'element-plus'
     </ElHeader>
     
     <ElMain class="app-main">
-      <RouterView />
+      <!-- 根据路由选择不同的布局 -->
+      <WorkflowLayout v-if="useWorkflowLayout">
+        <RouterView />
+      </WorkflowLayout>
+      
+      <HomeLayout
+        v-else-if="useHomeLayout"
+        :navigation-data="navigationData"
+        :current-node="currentNode"
+        @node-click="handleNodeClick"
+      >
+        <RouterView />
+      </HomeLayout>
+      
+      <RouterView v-else />
     </ElMain>
     
     <ElFooter class="app-footer">

@@ -37,7 +37,7 @@
   - [x] 通用组件 (Loading, Error, Empty)
   - [x] 表单组件 (FormWrapper, FieldGroup)
   - [x] 数据展示组件 (DataTable, Card, BaseTable)
-  - [ ] 导航组件 (WorkflowNavigation)
+  - [x] 导航组件 (WorkflowNavigation)
 
 - [x] 路由配置
   - [x] 配置多页面路由

@@ -36,11 +36,8 @@ export const useNavigationStore = defineStore('navigation', () => {
   // 获取认证 store
   const authStore = useAuthStore()
   
-  // 简化版：过滤后的导航项（已登录即可访问所有导航）
+  // 简化版：过滤后的导航项（始终显示所有导航项，不再依赖登录状态）
   const filteredNavigation = computed(() => {
-    if (!authStore.isAuthenticated) {
-      return []
-    }
     return navigationItems.value
   })
   
